@@ -1,0 +1,4 @@
+
+
+class ConsolidateReport:
+    pass
