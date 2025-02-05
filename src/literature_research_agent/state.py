@@ -1,10 +1,8 @@
 from langgraph.graph import add_messages
 from langchain_core.messages import AnyMessage
-from . import TavilySearchInput, DocumentCluster, ReportEvaluation
 from typing import TypedDict, List, Annotated, Dict, Union
 import operator
-
-
+from ..state import ProductInformation, API, DocumentCluster
 
 from pydantic import BaseModel, Field
 from typing import List, Optional
@@ -17,7 +15,7 @@ class TavilyQuery(BaseModel):
 class TavilySearchInput(BaseModel):
     sub_queries: List[TavilyQuery] = Field(description="set of sub-queries that can be answered in isolation")
 
-class LiteratureResearchOutput(BaseModel):
+class APILiteratureData(BaseModel):
     polymorphs: str = Field(
         ...,
         description="Detailed description of polymorphic forms of the active substance identified in the literature."
@@ -63,6 +61,9 @@ class LiteratureResearchOutput(BaseModel):
         description="Manufacturing process information for the RLD, including controls and recommended conditions, obtained from sources like LiteratureResearchAgent, PatentResearchAgent, and EMA API."
     )
 
+class APIsLiteratureData(BaseModel):
+    apis_literature_data: List[APILiteratureData]
+
 class ReportSection(BaseModel):
     name: str = Field(
         description="Name for this section of the report.",
@@ -74,77 +75,20 @@ class ReportSection(BaseModel):
         description="The content of the section."
     )   
 
-class SearchQuery(BaseModel):
-    search_query: str = Field(None, description="Query for web search.")
-
-class Queries(BaseModel):
-    queries: List[SearchQuery] = Field(
-        description="List of search queries.",
-    )
-
-# Define Input product information
-class ProductInformation(BaseModel):
-    product_name: str = Field(
-        ...,
-        description="The pharmaceutical product name that includes the Active Pharmaceutical Ingredients, and the pharmaceutical dosage form. For example: ´´´Dronabinol + Acetazolamide Unigel´´´, OR ´´´Vonoprazan Tablets´´´"
-    )
-    product_type: str = Field(
-        ...,
-        description="The pharmaceutical product type that could be one of these: OTC, RX, Nutraceutic, Cosmetic, others"
-    )
-    generic_name: str = Field(
-        ...,
-        description="The name of a generic or brand product with the desired API"
-    )    
-    product_strength: str = Field(
-        ...,
-        description="The name of the APIs included in the product with their respective strengths. For example: ´´´Dronabinol 2.5 mg + Acetazolamide 125 mg Unigel; Dronabinol 5 mg + Acetazolamide 250 mg Unigel´´´"
-    )
-    product_dosage_form: str = Field(
-        ...,
-        description="The pharmaceutical product dosage form, that could be: tablets, softgels, unigels, syrups, among others"
-    )
-    route_of_administracion: str = Field(
-        ...,
-        description="The pharmaceutical product route of administration, that includes: oral, topic, nasal, intragastric, vaginal, among others"
-    )
-    product_dose: str = Field(
-        ...,
-        description= "The desired product dose. If not available, could be replaced by a message indicating ´´´According to physician's prescription´´´"
-    )
-    physical_characteristics: str = Field(
-        ...,
-        description= "Color, shape, form or printing desired in the final version of the product"
-    )
-    packaging_type: str = Field(
-        ...,
-        description= "Desired secondary packaging specifications"
-    )
-    commercial_presentations: str = Field(
-        ...,
-        description= """The desired commercial presentation of the pharmaceutical product. It could be something like: ´´´Blister packs x 28 capsules´´´, ´´´VONOPRAZAM 10 mg TAB  CAJA X 30 und CIAL, VONOPRAZAM 20 mg TAB  CAJA X 30 und CIAL, 
-        VONOPRAZAM 10 mg TAB  CAJA X 5 und MM, VONOPRAZAM 20 mg TAB  CAJA X 5 und MM ´´´"""
-    )
-    required_expiration_time: str = Field(
-        ...,
-        description = """Required expiration time for the pharmaceutical product to be developed in months or years."""
-    )
-    observations: str = Field(
-        ...,
-        description= "Additional observations for the pharmaceutical product to be developed"
-    )
-
 # Define the research state
 class LiteratureResearchGraphState(TypedDict):
-    input_documents: List[str]                                                            # List of strings with the local directory of the documents (Input from UI)
+    API: API
     product_information: ProductInformation                                               # Product information to be developed
-    search_queries: List[SearchQuery]                                                     # List of search queries
-    completed_report_section: Annotated[list, operator.add]                               # List of report sections 
+    search_queries: List[TavilyQuery]                                                     # List of search queries
+    documents: Dict[str, Dict[Union[str, int], Union[str, float]]]
+    document_clusters: List[DocumentCluster]
+    chosen_clusters: List[int]
+    context: str
     consolidated_research_report: str                                                     # Consolidated report
-    literature_research_output_dict: LiteratureResearchOutput
+    apis_literature_data: List[APILiteratureData]
 
 class InputState(TypedDict):
-    input_documents: List[str]
+    product_information: ProductInformation                                               # Product information to be developed
 
 class OutputState(TypedDict):
-    literature_research_output_dict: LiteratureResearchOutput
+    apis_literature_data: List[APILiteratureData]
