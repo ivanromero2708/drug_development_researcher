@@ -10,18 +10,18 @@ class TestLiteratureResearchGraphBreakpoints(unittest.IsolatedAsyncioTestCase):
         """Set up the test with a complete graph execution after a specified node."""
         
         # Create a dummy API instance.
-        self.api = API(API_name="Aspirin")
+        self.api = API(API_name="Vonoprazan")
 
         # Create dummy ProductInformation with required fields.
         self.product_information = ProductInformation(
             APIs=[self.api],
-            product_name="Aspirin Tablets",
+            product_name="Viagra Chewgels",
             product_type="OTC",
-            generic_name="Acetylsalicylic Acid",
-            product_strength="500 mg",
+            generic_name="Viagra",
+            product_strength="50 and 25 mg",
             product_dosage_form="tablet",
             route_of_administration="oral",
-            product_dose="500 mg",
+            product_dose="50 and 25 mg",
             physical_characteristics="round, white",
             packaging_type="blister pack",
             commercial_presentations="Box of 20 tablets",

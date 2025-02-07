@@ -1,16 +1,34 @@
 from pydantic import BaseModel, Field
 from typing import List
 
+from typing import List, Literal
+from pydantic import BaseModel, Field
+
 # Define the structure for clustering output
 class DocumentCluster(BaseModel):
-    company_name: str = Field(
+    property: Literal[
+        'polymorphs',
+        'scheme_of_degradation_route',
+        'stability_indicators',
+        'impurities',
+        'biopharmaceutical_classification',
+        'hygroscopicity',
+        'chirality_or_specific_optical_rotation',
+        'glass_transition_temperature',
+        'degradation_temperature',
+        'rld_special_characteristics',
+        'rld_manufacturing_process_info'
+    ] = Field(
         ...,
-        description="The name or identifier of the company these documents belong to."
+        description="The name of the property these documents belong to."
     )
     cluster: List[str] = Field(
         ...,
-        description="A list of URLs relevant to the identified company."
+        description="A list of URLs relevant to the identified property."
     )
+
+class DocumentClusters(BaseModel):
+    clusters: List[DocumentCluster] = Field(default_factory=list, description="List of document clusters")
 
 class API(BaseModel):
     API_name: str = Field(

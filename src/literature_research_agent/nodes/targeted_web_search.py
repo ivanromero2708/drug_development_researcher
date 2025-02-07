@@ -3,55 +3,56 @@ from tavily import AsyncTavilyClient
 import asyncio
 from typing import List
 from datetime import datetime
-
+from langchain_core.runnables import RunnableConfig
+from ...configuration import Configuration
 
 class TargetedWebSearch:
     def __init__(self):
         self.tavily_client = AsyncTavilyClient()
     
-    async def tavily_search(self, sub_queries: List[TavilyQuery]):
+    async def tavily_search(self, sub_queries: List[TavilyQuery], config: RunnableConfig):
         """Perform searches for each sub-query using the Tavily search tool concurrently."""  
-        # Define a coroutine function to perform a single search with error handling
         async def perform_search(itm):
             try:
-                # Add date to the query as we need the most recent results
+                configurable = Configuration.from_runnable_config(config)
+                max_results_query = configurable.max_results_query
+                
                 query_with_date = f"{itm.query} {datetime.now().strftime('%m-%Y')}"
-                # Attempt to perform the search, hardcoding days to 7 (days will be used only when topic is news)
-                response = await self.tavily_client.search(query=query_with_date, max_results=10)
+                response = await self.tavily_client.search(
+                    query=query_with_date,
+                    max_results=max_results_query,
+                    include_raw_content=True
+                )
                 return response['results']
             except Exception as e:
-                # Handle any exceptions, log them, and return an empty list
-                print(f"Error occurred during search for query '{itm.query}': {str(e)}")
+                print(f"Error during search '{itm.query}': {str(e)}")
                 return []
         
-        # Run all the search tasks in parallel
         search_tasks = [perform_search(itm) for itm in sub_queries]
         search_responses = await asyncio.gather(*search_tasks)
         
-        # Combine the results from all the responses
         search_results = []
         for response in search_responses:
             search_results.extend(response)
         
         return search_results
         
-    async def research(self, state: LiteratureResearchGraphState):
+    async def research(self, state: LiteratureResearchGraphState, config: RunnableConfig = None):
         """
-        Conducts a Tavily Search and stores all documents in a unified 'documents' attribute.
+        Conducts a Tavily Search and stores documents.
         """
-        state['documents'] = {}  # Initialize documents if not already present
+        state['documents'] = {}  # Inicializar documentos
 
-        research_node = TargetedWebSearch()
-        # Perform the search and gather results
-        response = await research_node.tavily_search(state['search_queries'])
+        # Corregido: Usar self y pasar config
+        response = await self.tavily_search(state['search_queries'], config)
 
-        # Process each set of search results and add to documents
         for doc in response:
             url = doc.get('url')
-            if url and url not in state['documents']:  # Avoid duplicates
+            if url and url not in state['documents']:
                 state['documents'][url] = doc
 
         return {"documents": state['documents']}
     
-    async def run(self, state: LiteratureResearchGraphState):
-        return await self.research(state)
+    # Corregido: Añadir parámetro config al método run
+    async def run(self, state: LiteratureResearchGraphState, config: RunnableConfig = None):
+        return await self.research(state, config)

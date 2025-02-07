@@ -18,47 +18,47 @@ class TavilySearchInput(BaseModel):
 class APILiteratureData(BaseModel):
     polymorphs: str = Field(
         ...,
-        description="Detailed description of polymorphic forms of the active substance identified in the literature."
+        description="Complete text with references in a scientific and research article style from the Detailed description of polymorphic forms of the active substance identified in the literature. It includes the url link as reference"
     )
     scheme_of_degradation_route: str = Field(
         ...,
-        description="Detailed scheme of degradation routes based on literature and DMF sources."
+        description="Complete text with references in a scientific and research article style Detailed scheme of degradation routes based on literature and DMF sources. It includes the url link as reference"
     )
     stability_indicators: str = Field(
         ...,
-        description="Key stability indicators obtained from the literature and DMF."
+        description="Complete text with references in a scientific and research article style Key stability indicators obtained from the literature and DMF. It includes the url link as reference"
     )
     impurities: str = Field(
         ...,
-        description="Information on relevant impurities derived from the literature, DMF, and USP Monograph, if applicable."
+        description="Complete text with references in a scientific and research article style Information on relevant impurities derived from the literature, DMF, and USP Monograph, if applicable. It includes the url link as reference"
     )
     biopharmaceutical_classification: str = Field(
         ...,
-        description="Biopharmaceutical classification based on physicochemical properties and permeability."
+        description=" Complete text with references in a scientific and research article style Biopharmaceutical classification based on physicochemical properties and permeability. It includes the url link as reference"
     )
     hygroscopicity: str = Field(
         ...,
-        description="Data on hygroscopicity collected through PubChem web scraping and relevant literature."
+        description="Complete text with references in a scientific and research article style Data on hygroscopicity. It includes the url link as reference"
     )
     chirality_or_specific_optical_rotation: str = Field(
         ...,
-        description="Information on chirality or specific optical rotation obtained from DMF and other literary sources."
+        description="Complete text with references in a scientific and research article style Information on chirality or specific optical rotation obtained from DMF and other literary sources. It includes the url link as reference"
     )
     glass_transition_temperature: str = Field(
         ...,
-        description="Glass transition temperature based on available studies in the literature."
+        description="Complete text with references in a scientific and research article style Glass transition temperature based on available studies in the literature. It includes the url link as reference"
     )
     degradation_temperature: str = Field(
         ...,
-        description="Degradation temperature identified in the literature."
+        description="Complete text with references in a scientific and research article style Degradation temperature identified in the literature. It includes the url link as reference"
     )
     rld_special_characteristics: str = Field(
         ...,
-        description="Special characteristics of the API and excipients for the RLD, such as crystalline form or particle size, based on COFA and literature."
+        description="Complete text with references in a scientific and research article style Special characteristics of the API and excipients for the RLD, such as crystalline form or particle size, based on COFA and literature. It includes the url link as reference"
     )
     rld_manufacturing_process_info: str = Field(
         ...,
-        description="Manufacturing process information for the RLD, including controls and recommended conditions, obtained from sources like LiteratureResearchAgent, PatentResearchAgent, and EMA API."
+        description="Complete text with references in a scientific and research article style Manufacturing process information for the RLD, including controls and recommended conditions, obtained from sources like LiteratureResearchAgent, PatentResearchAgent, and EMA API. It includes the url link as reference"
     )
 
 class APIsLiteratureData(BaseModel):
@@ -85,7 +85,7 @@ class LiteratureResearchGraphState(TypedDict):
     chosen_clusters: List[int]
     context: str
     consolidated_research_report: str                                                     # Consolidated report
-    apis_literature_data: List[APILiteratureData]
+    api_literature_data: APILiteratureData
 
 class InputState(TypedDict):
     product_information: ProductInformation                                               # Product information to be developed
