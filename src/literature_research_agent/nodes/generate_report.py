@@ -1,10 +1,10 @@
 from datetime import datetime
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
-from ..state import LiteratureResearchGraphState
+from src.literature_research_agent.state import LiteratureResearchGraphState
 from langchain_core.runnables import RunnableConfig
-from ...configuration import Configuration
-from ..prompts import PROMPT_GENERATE_REPORT
+from src.configuration import Configuration
+from src.literature_research_agent.prompts import PROMPT_GENERATE_REPORT
 
 class GenerateReport:
     def __init__(self):

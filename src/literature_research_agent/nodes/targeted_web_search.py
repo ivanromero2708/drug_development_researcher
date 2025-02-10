@@ -1,10 +1,10 @@
-from ..state import LiteratureResearchGraphState, TavilyQuery
+from src.literature_research_agent.state import LiteratureResearchGraphState, TavilyQuery
 from tavily import AsyncTavilyClient
 import asyncio
 from typing import List
 from datetime import datetime
 from langchain_core.runnables import RunnableConfig
-from ...configuration import Configuration
+from src.configuration import Configuration
 
 class TargetedWebSearch:
     def __init__(self):

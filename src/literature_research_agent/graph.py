@@ -1,11 +1,10 @@
 from langgraph.graph import START, END, StateGraph
 from langgraph.checkpoint.memory import MemorySaver
-from .state import LiteratureResearchGraphState
+from src.literature_research_agent.state import LiteratureResearchGraphState
 
 #from research_process_graph.graph import research_process_builder
 from .nodes import(
     GenerateSubQuestions,
-    ConsolidateReport,
     ExtractInformation,
     TargetedWebSearch,
     ClusterRelatedDocs,
@@ -14,7 +13,6 @@ from .nodes import(
 )
 
 generate_sub_questions = GenerateSubQuestions()
-consolidate_report = ConsolidateReport()
 extract_information = ExtractInformation()
 targeted_web_search = TargetedWebSearch()
 cluster_related_docs = ClusterRelatedDocs()

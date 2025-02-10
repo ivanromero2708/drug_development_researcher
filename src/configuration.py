@@ -18,7 +18,7 @@ class Configuration:
     o3mini: str = "o3-mini"
     claude_35_sonnet: str = "claude-3-5-sonnet-latest"
     TAVILY_API_KEY: str = os.getenv("TAVILY_API_KEY")
-    number_of_queries: int = 5
+    number_of_queries: int = 4
     max_results_query: int = 7
     max_tokens_per_source: int = 4000
     

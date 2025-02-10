@@ -1,6 +1,7 @@
-from ...configuration import Configuration
-from ..state import LiteratureResearchGraphState, TavilySearchInput
-from ..prompts import PROMPT_GENERATE_SUB_QUESTIONS
+from src.configuration import Configuration
+from src.literature_research_agent.state import LiteratureResearchGraphState
+from src.state import TavilySearchInput
+from src.literature_research_agent.prompts import PROMPT_GENERATE_SUB_QUESTIONS
 from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage

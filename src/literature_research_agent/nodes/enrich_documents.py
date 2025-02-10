@@ -2,8 +2,8 @@ import asyncio
 from typing import Dict, Any
 from langchain_core.messages import AIMessage  # Opcional, para mensajes de feedback
 from langchain_core.runnables import RunnableConfig
-from ...configuration import Configuration
-from ..state import LiteratureResearchGraphState
+from src.configuration import Configuration
+from src.literature_research_agent.state import LiteratureResearchGraphState
 
 class EnrichDocuments:
     """

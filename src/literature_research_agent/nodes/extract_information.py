@@ -5,8 +5,10 @@ from pydantic import BaseModel, Field
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
-from ...configuration import Configuration
-from ..state import LiteratureResearchGraphState, APILiteratureData
+from src.configuration import Configuration
+from src.literature_research_agent.state import LiteratureResearchGraphState
+from src.state import APILiteratureData
+
 
 class ExtractInformation:
     def __init__(self):
@@ -21,7 +23,7 @@ class ExtractInformation:
         structured_llm = llm.with_structured_output(APILiteratureData)
         
         api_literature_data = structured_llm.invoke(consolidated_research_report)
-        return {"api_literature_data": api_literature_data}
+        return {"api_literature_data": [api_literature_data]}
     
     def run(self, state: LiteratureResearchGraphState, config: RunnableConfig):
         return self.extract_information(state, config)
