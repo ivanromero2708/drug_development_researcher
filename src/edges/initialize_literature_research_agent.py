@@ -12,7 +12,7 @@ class InitializeLiteratureResearch:
             Send("literature_research", 
                 {
                     "API": API,
-                    "product_information": product_information,
+                    "product_information_child": product_information,
                 }
             ) 
             for API in state["apis"]

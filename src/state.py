@@ -1,9 +1,11 @@
 from pydantic import BaseModel, Field
-from typing import List, TypedDict, Annotated
+from typing import List, TypedDict, Annotated, Optional
 import operator
 
 from typing import List, Literal
 from pydantic import BaseModel, Field
+from langgraph.channels.last_value import LastValue
+
 
 # Add Tavily's arguments to enhance the web search tool's capabilities
 class TavilyQuery(BaseModel):
@@ -14,6 +16,47 @@ class TavilySearchInput(BaseModel):
     sub_queries: List[TavilyQuery] = Field(description="set of sub-queries that can be answered in isolation")
 
 class APILiteratureData(BaseModel):
+    api_name: str = Field(
+        ...,
+        description= "The name of the API."
+    )
+    cas_number: Optional[str] = Field(
+        default="Not available",
+        description="CAS number in XXXX-XX-X format",
+    )
+    description: str = Field(
+        default="",
+        description="Physical description with bullet points"
+    )
+    solubility: str = Field(
+        default="",
+        description="Solubility in various solvents"
+    )
+    melting_point: str = Field(
+        default="Not available",
+        description="Melting point in 'value ± deviation °C' format",
+    )
+    chemical_names: str = Field(
+        ...,
+        description="IUPAC name of compound",
+    )
+    molecular_formula: str = Field(
+        ...,
+        description="Molecular formula in Hill notation",
+    )
+    molecular_weight: Optional[float] = Field(
+        None,
+        ge=0,
+        description="Molecular weight in g/mol",
+    )
+    log_p: str = Field(
+        default="Not available",
+        description="Octanol-water partition coefficient",
+    )
+    boiling_point: str = Field(
+        default="Not available",
+        description="Boiling point in 'value °C at pressure'",
+    )
     polymorphs: str = Field(
         ...,
         description="Complete text with references in a scientific and research article style from the Detailed description of polymorphic forms of the active substance identified in the literature. It includes the url link as reference"
@@ -104,10 +147,6 @@ class API(BaseModel):
         ...,
         description="The name of the pharmaceutical active ingredient."
     )
-    API_strength: str = Field(
-        ...,
-        description="The strength of the pharmaceutical active ingredient."
-    )
 
 # Define Input product information
 class ProductInformation(BaseModel):
@@ -183,5 +222,5 @@ class DrugDevelopmentResearchGraphState(TypedDict):
     rld_packaging_descriptions: str
 #    ingredients_iig: List[IngredientsIIG]
 #    api_data_external_apis: List[APIExternalData]
-    context: dict    
+    context_for_tpl: dict
     report_docx_dir_string: str

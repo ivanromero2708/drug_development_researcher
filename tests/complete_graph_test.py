@@ -17,7 +17,7 @@ class TestDrugDevelopmentResearcherGraph(unittest.IsolatedAsyncioTestCase):
         self.test_state: DrugDevelopmentResearchGraphState = {
             "input_documents": [self.input_document_path],
             "apis": [],
-            "product_information": [],
+            #"product_information": [],
             "api_literature_data": [],
             "patent_background_restrictions": "",
             "rld_packaging_descriptions": "",

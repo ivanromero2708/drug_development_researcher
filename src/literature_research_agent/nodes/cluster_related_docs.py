@@ -40,7 +40,7 @@ class ClusterRelatedDocs:
         """
         # Extract context from state
         API = state["API"]
-        product_information = state["product_information"]
+        product_information = state["product_information_child"]
         product_dosage_form = product_information.product_dosage_form
         route_of_administration = product_information.route_of_administration
         documents = state["documents"]
@@ -119,61 +119,3 @@ class ClusterRelatedDocs:
 
         return result
 
-
-# -------------------------------
-# Test Code Lines to Verify the Node Functionality
-
-if __name__ == "__main__":
-    # For testing purposes, define dummy API, product information, and documents.
-    from pydantic import BaseModel
-
-    class DummyAPI(BaseModel):
-        API_name: str
-
-    class DummyProductInformation(BaseModel):
-        product_dosage_form: str
-        route_of_administration: str
-
-    # Create some dummy documents (simulate retrieved URLs and their content)
-    dummy_documents = {
-        "https://example.com/doc1": {
-            "content": "This document discusses various polymorphic forms and degradation routes of Aspirin."
-        },
-        "https://example.com/doc2": {
-            "content": "This paper provides stability indicators and an analysis of impurities in Aspirin tablet formulations."
-        },
-        "https://example.com/doc3": {
-            "content": "Here we discuss the biopharmaceutical classification and hygroscopicity of Aspirin."
-        },
-        "https://example.com/doc4": {
-            "content": "This article covers chirality, specific optical rotation, glass transition temperature and degradation temperature for Aspirin."
-        },
-        "https://example.com/doc5": {
-            "content": "Additional details about RLD special characteristics and the manufacturing process information for Aspirin are provided."
-        },
-    }
-
-    # Construct a dummy state resembling LiteratureResearchGraphState
-    dummy_state = {
-        "API": DummyAPI(API_name="Aspirin"),
-        "product_information": DummyProductInformation(
-            product_dosage_form="tablet", route_of_administration="oral"
-        ),
-        "documents": dummy_documents,
-    }
-
-    # Create a dummy configuration using RunnableConfig and Configuration.
-    dummy_config = RunnableConfig(
-        configurable=Configuration(number_of_queries=2, gpt4omini="gpt-4")
-    )
-
-    # Instantiate and run the clustering node
-    node = ClusterRelatedDocs()
-    result = asyncio.run(node.run(dummy_state, dummy_config))
-
-    # Print the chosen clusters and document clusters for inspection
-    print("Chosen clusters:", result.get("chosen_clusters"))
-    print("Document Clusters:")
-    for cluster in result.get("document_clusters", []):
-        print(f"Property: {cluster.property}")
-        print(f"Documents: {cluster.cluster}")

@@ -1,7 +1,18 @@
 PROMPT_GENERATE_REPORT = """
-You are an expert pharmaceutical researcher tasked with writing a comprehensive, fact-based report on the API **{API}**.
-Write the report in Markdown format WITHOUT including a title in the body; the title and date will be added separately.
-Your report must be highly precise and data-rich. Include specific numerical values, measurements, CAS numbers, experimental results, and direct study findings extracted from the evidence provided. Avoid vague generalizations—cite exact values and observations wherever available.
+You are an expert pharmaceutical researcher tasked with writing a comprehensive, fact-based report on the API **{API}** using validated chemical data.
+Write the report in plain text format WITHOUT including a title in the body; the title and date will be added separately.
+Your report must be highly precise and data-rich. Use ONLY the validated data from the APIExternalData model and evidence provided.
+
+**Validated API Properties** (strictly use these values):
+- CAS Number: <cas_number>{cas_number}</cas_number>
+- Molecular Formula: <molecular_formula>{molecular_formula}</molecular_formula>
+- Molecular Weight: <molecular_weight>{molecular_weight}</molecular_weight>
+- IUPAC Name: <chemical_names>{chemical_names}</chemical_names>
+- LogP: <log_p>{log_p}</log_p>
+- Melting Point: <melting_point>{melting_point}</melting_point>
+- Boiling Point: <boiling_point>{boiling_point}</boiling_point>
+- Solubility: <solubility>{solubility}</solubility>
+- Physical Description: <description>{description}</description>
 
 Focus on the following sections and ensure that each API property is addressed as defined below:
 
@@ -12,6 +23,24 @@ Focus on the following sections and ensure that each API property is addressed a
 2. **Research Findings by API Property**:
    For each API property listed below, extract and report the key findings from the evidence provided. Your summary must include specific numerical values, experimental data, and precise study results as follows:
 
+   - CAS Number: Just report the value.
+   
+   - Molecular Formula: Just report the value.
+   
+   - Molecular Weight: Just report the value.
+   
+   - IUPAC Name: Just report the value.
+   
+   - LogP: Just report the values.
+   
+   - Melting Point: Just report the values.
+   
+   - Boiling Point: Just report the values.
+   
+   - Solubility: Just report the values.
+   
+   - Physical Description: Just report the values.
+   
    - **polymorphs**:  
      Describe the different polymorphic forms of the API. Include the number of forms identified, their crystal systems (e.g., triclinic, monoclinic), melting points, density differences, and any thermodynamic data such as transition temperatures or free energy changes.
 
@@ -54,7 +83,9 @@ Focus on the following sections and ensure that each API property is addressed a
    - At the end of the report, list all source URLs used as Markdown hyperlinks.
 
 ### Evidence from Selected Documents:
+<context>
 {context}
+</context>
 
 Generate the report solely based on the provided evidence. Your answer must be detailed, precise, and data-rich.
 """

@@ -1,17 +1,45 @@
 import pubchempy as pcp
-import httpx, asyncio, requests
-from typing import Optional, Dict, Tuple, Union, List
+import httpx, asyncio, logging
+from typing import Optional, Dict, Union, List
+from src.literature_research_agent.state import LiteratureResearchGraphState, APIExternalData
+from langchain_core.runnables import RunnableConfig
+import re
 
-
-class ExternalApiFunctions:
+class SearchExternalAPIs:
     CHEMBL_API_BASE_URL = "https://www.ebi.ac.uk/chembl/api/data"
 
     def __init__(self):
         self.configurable = None
 
-    # -------------Funciones de pubchem--------------------#
+    # Funciones de pubchem
+    # get_cid, get_cas, get_specific_properties, extract_properties
+    # Funciones de chembl
+    # get_chembl_data
+    # Funciones auxiliares
+    # fetch_data_from_api
+
+    # Función para obtener información de la API de CHEMBL
+    async def get_chembl_data(self, name: str) -> Optional[Dict]:
+        """
+        Fetches data from ChEMBL API based on Compound name.
+
+        Args:
+            name (str): Compound name.
+
+        Returns:
+            Optional[Dict]: JSON response from the API.
+        """
+
+        url = f"{self.CHEMBL_API_BASE_URL}/molecule/search?q={name}&format=json"
+        semaphore = asyncio.Semaphore(1)
+
+        async with httpx.AsyncClient(
+            headers={"Content-Type": "application/json"}
+        ) as client:
+            return await self.fetch_data_from_api(client, url, semaphore)
+
     # Obtener el CID
-    def get_cid(inchikey: str) -> Optional[str]:
+    def get_cid(self, inchikey: str) -> Optional[str]:
         """
         Get the cid with the inchikey of a compound.
 
@@ -28,19 +56,19 @@ class ExternalApiFunctions:
             if compounds:
                 return compounds[0].cid
             else:
-                print("No se encontró el compuesto con el InChIKey proporcionado")
+                logging("No se encontró el compuesto con el InChIKey proporcionado")
                 return None
         except pcp.PubChemHTTPError as e:
-            print(f"Error de conexión con PubChem: {e}")
+            logging(f"Error de conexión con PubChem: {e}")
             return None
         except Exception as e:
-            print(f"Error inesperado: {e}")
+            logging(f"Error inesperado: {e}")
             return None
 
         # Obtener número CAS
 
     # Obtener número CAS
-    def get_cas(smiles: str) -> str:
+    def get_cas(self, smiles: str) -> str:
         """
         Obtain Cas Number with SMILES.
 
@@ -68,7 +96,7 @@ class ExternalApiFunctions:
             return f"Error: {e}"
 
     # Obtener JSON de la API de PubChem
-    async def get_specific_properties(cid: str) -> Optional[Dict]:
+    async def get_specific_properties(self, cid: str) -> Optional[Dict]:
         """
         Fetch the API endpoint to obtain melting point,boiling point,
         density, pKa, LogP, stability, solubility, description and
@@ -99,7 +127,7 @@ class ExternalApiFunctions:
         results = {}
         async with httpx.AsyncClient() as client:
             tasks = [
-                ExternalApiFunctions.fetch_data_from_api(client, url, semaphore)
+                self.fetch_data_from_api(client, url, semaphore)
                 for url in urls.values()
             ]
             responses = await asyncio.gather(*tasks)
@@ -107,12 +135,12 @@ class ExternalApiFunctions:
             for property_name, response in zip(urls.keys(), responses):
                 results[property_name] = response
 
-        result = ExternalApiFunctions.extract_properties(results)
+        result = self.extract_properties(results)
 
         return result
 
     # Extraer propiedades del API
-    def extract_properties(data: dict) -> Dict[str, List[str]]:
+    def extract_properties(self, data: dict) -> Dict[str, List[str]]:
         """
         Extract specific information from the APIs.
 
@@ -193,78 +221,9 @@ class ExternalApiFunctions:
                 recursive_search(property_data)
         return results
 
-    # -------------Funciones de chembl---------------------#
-    # Función para obtener información de la API de CHEMBL
-    def get_chembl_data(query_type: str, query: str) -> Optional[Dict]:
-        """
-        Fetches data from ChEMBL API based on query type and value.
-
-        Args:
-            query_type (str): Type of query (name or smiles).
-            query (str): Query value.
-
-        Returns:
-            Optional[Dict]: JSON response from the API.
-        """
-
-        if query_type == "name":
-            url = f"{ExternalApiFunctions.CHEMBL_API_BASE_URL}/molecule/search?q={query}&format=json"
-        elif query_type == "smiles":
-            url = f"{ExternalApiFunctions.CHEMBL_API_BASE_URL}/substructure/{query}?format=json&limit=21"
-        else:
-            return None
-
-        try:
-            response = requests.get(url, headers={"Content-Type": "application/json"})
-            response.raise_for_status()
-            return response.json() if response.text.strip() else None
-        except requests.exceptions.RequestException as e:
-            print(f"Error al realizar la solicitud al API: {e}")
-            return None
-
-    # Función para obtener datos del compuesto (químico, mecanismo, indicaciones y propiedades)
-    async def get_drug_data(
-        chembl_id: str,
-    ) -> Tuple[Optional[Dict], Optional[Dict], Optional[Dict], Optional[Dict]]:
-        """
-        Fetches drug data (market status, mechanism of action, indications) from ChEMBL.
-
-        Args:
-            chembl_id (str): ChEMBL ID for the compound.
-
-        Returns:
-            Tuple[Optional[Dict], Optional[Dict], Optional[Dict], Optional[Dict]]: Tuple containing drug, mechanism, indication and molecular data.
-        """
-        try:
-            # Fetch approved drugs information
-            drug_url = f"{ExternalApiFunctions.CHEMBL_API_BASE_URL}/drug?molecule_chembl_id={chembl_id}&format=json"
-            mechanism_url = f"{ExternalApiFunctions.CHEMBL_API_BASE_URL}/mechanism?molecule_chembl_id={chembl_id}&format=json"
-            indication_url = f"{ExternalApiFunctions.CHEMBL_API_BASE_URL}/drug_indication?molecule_chembl_id={chembl_id}&format=json"
-            molecular_url = f"{ExternalApiFunctions.CHEMBL_API_BASE_URL}/molecule/{chembl_id}?format=json"
-
-            # Lista de URLs
-            urls = [drug_url, mechanism_url, indication_url, molecular_url]
-
-            semaphore = asyncio.Semaphore(2)
-
-            # Ejecutar las llamadas en paralelo
-            async with httpx.AsyncClient() as client:
-                tasks = [
-                    ExternalApiFunctions.fetch_data_from_api(client, url, semaphore)
-                    for url in urls
-                ]
-                responses = await asyncio.gather(*tasks)
-
-            # Asignar valores a las variables
-            drug_data, mechanism_data, indication_data, molecular_data = responses
-            return drug_data, mechanism_data, indication_data, molecular_data
-        except requests.exceptions.RequestException as e:
-            print(f"Error al realizar la solicitud al API para datos de drogas: {e}")
-            return None, None, None
-
-    # -------------Funciones de ayuda----------------------#
+    # Funcion para extraer información del api
     async def fetch_data_from_api(
-        client: httpx.AsyncClient, url: str, semaphore: asyncio.Semaphore
+        self, client: httpx.AsyncClient, url: str, semaphore: asyncio.Semaphore
     ) -> Optional[Dict]:
         """
         Fetches data from an API endpoint using httpx.
@@ -280,10 +239,113 @@ class ExternalApiFunctions:
             try:
                 response = await client.get(url)
                 if response.status_code == 404:
-                    print(f"Recurso no encontrado: {url}")
+                    logging(f"Recurso no encontrado: {url}")
                     return None
                 response.raise_for_status()
                 return response.json()
             except httpx.RequestError as e:
-                print(f"Error al realizar la solicitud al API {url}: {e}")
+                logging(f"Error al realizar la solicitud al API {url}: {e}")
                 return None
+
+    async def search_external_apis(self, state: LiteratureResearchGraphState, config: RunnableConfig):
+        api_name = state["API"].API_name
+        
+        chembl_json = self.get_chembl_data(name = api_name)
+        molecule = chembl_json["molecules"][0]
+        molecule_structures = molecule.get("molecule_structures", {})
+        
+        smiles = molecule_structures.get("canonical_smiles", "NA")
+        InChI = molecule_structures.get("standard_inchi", "NA")
+        InChiKey = molecule_structures.get("standard_inchi_key", "NA")
+        
+        cas_number = self.get_cas(smiles)
+        
+        cid = self.get_cid(InChiKey)
+        compound = pcp.get_compounds(InChiKey, "inchi_key")
+        
+        # Molecular weight
+        molecular_weight = compound.molecular_weight
+        
+        specific_properties = await self.get_specific_properties(cid)
+        
+        # API Physical description
+        unique_physical = set(specific_properties["Physical Description"])
+        physical_description = "\n" + "\n".join(
+            f"- {point}" for point in unique_physical
+        )
+        
+        # API solubility
+        unique_solubility = set(specific_properties["Solubility"])
+        solubility = "\n" + "\n".join(
+            f"- {point}" for point in unique_solubility
+        )
+        
+        # Melting point
+        celsius_value = None
+        for point in specific_properties["Melting Point"]:
+            if re.search(r"\d+ °C", point):
+                celsius_value = point
+                break
+ 
+        if celsius_value:
+            melting_point = f"{celsius_value}"
+        else:
+            melting_point = (
+                f"{specific_properties["Melting Point"][0]}"
+                if specific_properties["Melting Point"]
+                else "Información no disponible"
+            )
+        
+        # Chemical names
+        unique_iupac = set(specific_properties["IUPAC Name"])
+        first_value = list(unique_iupac)[0]
+        iupac_name = f"{first_value}"
+        
+        # Molecular Structure
+        unique_molecular = set(specific_properties["Molecular Formula"])
+        first_value = list(unique_molecular)[0]
+        molecular_formula = f"{first_value}"
+        
+        # LogP
+        unique_logp = set(specific_properties["LogP"])
+        first_value = list(unique_logp)[0]
+        logp = f"{first_value}"
+        
+        # pKa Dissociation Constant
+        unique_pka = set(specific_properties["Dissociation Constants"])
+        first_value = list(unique_pka)[0]
+        pka = f"{first_value}"
+        
+        # Boiling Point
+        celsius_value = None
+ 
+        for point in specific_properties["Boiling Point"]:
+            if re.search(r"\d+ °C", point):
+                celsius_value = point
+                break
+ 
+        if celsius_value:
+            boiling_point = f"{celsius_value}"
+        else:
+            boiling_point = (
+                f"{specific_properties["Boiling Point"][0]}"
+                    if specific_properties["Boiling Point"]
+                else "Información no disponible"
+            )
+        
+        api_external_APIkey_data = APIExternalData(
+            cas_number = cas_number,
+            description = physical_description,
+            solubility = solubility,
+            melting_point = melting_point,
+            chemical_names = iupac_name,
+            molecular_formula = molecular_formula,
+            molecular_weight = molecular_weight,
+            log_p = logp,
+            boiling_point=boiling_point,
+            )
+        
+        return {"api_external_APIkey_data": api_external_APIkey_data}
+    
+    def run(self, state, config):
+        return self.run(state,config)

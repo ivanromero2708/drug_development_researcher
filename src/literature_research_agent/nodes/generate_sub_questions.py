@@ -22,8 +22,7 @@ class GenerateSubQuestions:
           - queries: A list of queries
         """
         API = state["API"]
-        product_information = state["product_information"]
-        product_information = state["product_information"]
+        product_information = state["product_information_child"]
         
         product_dosage_form = product_information.product_dosage_form
         route_of_administration = product_information.route_of_administration
