@@ -6,40 +6,30 @@ from pydantic import BaseModel, Field
 
 class APIExternalData(BaseModel):
     cas_number: Optional[str] = Field(
-        default="Not available",
         description="CAS number in XXXX-XX-X format",
     )
     description: str = Field(
-        default="",
         description="Physical description with bullet points"
     )
     solubility: str = Field(
-        default="",
         description="Solubility in various solvents"
     )
     melting_point: str = Field(
-        default="Not available",
         description="Melting point in 'value ± deviation °C' format",
     )
     chemical_names: str = Field(
-        ...,
         description="IUPAC name of compound",
     )
     molecular_formula: str = Field(
-        ...,
         description="Molecular formula in Hill notation",
     )
     molecular_weight: Optional[float] = Field(
-        None,
-        ge=0,
         description="Molecular weight in g/mol",
     )
     log_p: str = Field(
-        default="Not available",
         description="Octanol-water partition coefficient",
     )
     boiling_point: str = Field(
-        default="Not available",
         description="Boiling point in 'value °C at pressure'",
     )
 

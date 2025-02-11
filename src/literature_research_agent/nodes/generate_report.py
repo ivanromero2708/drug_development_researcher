@@ -16,18 +16,18 @@ class GenerateReport:
         context = state["context"]
         api_external_APIkey_data = state["api_external_APIkey_data"]
         cas_number = api_external_APIkey_data.cas_number,
-        physical_description = api_external_APIkey_data.physical_description,
+        physical_description = api_external_APIkey_data.description,
         solubility = api_external_APIkey_data.solubility,
         melting_point = api_external_APIkey_data.melting_point,
-        iupac_name = api_external_APIkey_data.iupac_name,
+        iupac_name = api_external_APIkey_data.chemical_names,
         molecular_formula = api_external_APIkey_data.molecular_formula,
         molecular_weight = api_external_APIkey_data.molecular_weight,
-        logp = api_external_APIkey_data.logp,
+        logp = api_external_APIkey_data.log_p,
         boiling_point=api_external_APIkey_data.boiling_point,
         
         # Get configuration and initialize the LLM
         configurable = Configuration.from_runnable_config(config)
-        llm = ChatOpenAI(model=configurable.gpt4omini, temperature=0) 
+        llm = ChatOpenAI(model=configurable.o3mini, reasoning_effort="medium") 
         
         context = state["context"]
         # Título y fecha

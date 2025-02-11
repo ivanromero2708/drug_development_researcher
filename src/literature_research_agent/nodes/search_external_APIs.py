@@ -1,351 +1,187 @@
-import pubchempy as pcp
-import httpx, asyncio, logging
-from typing import Optional, Dict, Union, List
-from src.literature_research_agent.state import LiteratureResearchGraphState, APIExternalData
-from langchain_core.runnables import RunnableConfig
+import asyncio
+import httpx
+import logging
 import re
+import requests
+import pubchempy as pcp
+from typing import Optional, Dict, List
+from pydantic import BaseModel
+from src.literature_research_agent.state import LiteratureResearchGraphState
+
+# Configuración básica de logging
+logging.basicConfig(level=logging.INFO)
+
+# Modelo de datos para la salida (sin valores default problemáticos)
+class APIExternalData(BaseModel):
+    cas_number: Optional[str] = None
+    description: Optional[str] = None
+    solubility: Optional[str] = None
+    melting_point: Optional[str] = None
+    chemical_names: Optional[str] = None
+    molecular_formula: Optional[str] = None
+    molecular_weight: Optional[float] = None
+    log_p: Optional[str] = None
+    boiling_point: Optional[str] = None
 
 class SearchExternalAPIs:
     CHEMBL_API_BASE_URL = "https://www.ebi.ac.uk/chembl/api/data"
+    PUBCHEM_BASE_URL = "https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/"
+    
+    def __init__(self, max_retries: int = 3, retry_delay: int = 2):
+        self.client = httpx.AsyncClient(headers={"Content-Type": "application/json"})
+        self.max_retries = max_retries
+        self.retry_delay = retry_delay
 
-    def __init__(self):
-        self.configurable = None
-
-    # Funciones de pubchem
-    # get_cid, get_cas, get_specific_properties, extract_properties
-    # Funciones de chembl
-    # get_chembl_data
-    # Funciones auxiliares
-    # fetch_data_from_api
-
-    # Función para obtener información de la API de CHEMBL
-    async def get_chembl_data(self, name: str) -> Optional[Dict]:
+    async def fetch(self, url: str) -> Optional[Dict]:
         """
-        Fetches data from ChEMBL API based on Compound name.
-
-        Args:
-            name (str): Compound name.
-
-        Returns:
-            Optional[Dict]: JSON response from the API.
+        Realiza una solicitud HTTP GET con reintentos en caso de error.
         """
+        for attempt in range(self.max_retries):
+            try:
+                response = await self.client.get(url, timeout=10)
+                response.raise_for_status()
+                return response.json() if response.text.strip() else None
+            except httpx.HTTPStatusError as e:
+                logging.error(f"HTTP error for {url}: {e}")
+            except httpx.RequestError as e:
+                logging.error(f"Request error for {url}: {e}")
+            await asyncio.sleep(self.retry_delay)
+        return None
 
+    def get_chembl_data(self, name: str) -> Optional[Dict]:
+        """
+        Obtiene información de la API de CHEMBL por nombre del compuesto.
+        """
         url = f"{self.CHEMBL_API_BASE_URL}/molecule/search?q={name}&format=json"
-        semaphore = asyncio.Semaphore(1)
+        try:
+            response = requests.get(url, headers={"Content-Type": "application/json"}, timeout=10)
+            response.raise_for_status()
+            return response.json() if response.text.strip() else None
+        except requests.RequestException as e:
+            logging.error(f"Error in get_chembl_data: {e}")
+            return None
 
-        async with httpx.AsyncClient(
-            headers={"Content-Type": "application/json"}
-        ) as client:
-            return await self.fetch_data_from_api(client, url, semaphore)
-
-    # Obtener el CID
     def get_cid(self, inchikey: str) -> Optional[str]:
         """
-        Get the cid with the inchikey of a compound.
-
-        Args:
-            inchikey (str): Inchikey of a compound.
-
-        Returns:
-            compounds (str): Cid of a compound or None.
+        Obtiene el CID de PubChem basado en el InChIKey.
         """
-
         try:
             compounds = pcp.get_compounds(inchikey, namespace="inchikey")
-
-            if compounds:
-                return compounds[0].cid
-            else:
-                logging("No se encontró el compuesto con el InChIKey proporcionado")
-                return None
-        except pcp.PubChemHTTPError as e:
-            logging(f"Error de conexión con PubChem: {e}")
-            return None
+            return compounds[0].cid if compounds else None
         except Exception as e:
-            logging(f"Error inesperado: {e}")
+            logging.error(f"Error in get_cid: {e}")
             return None
 
-        # Obtener número CAS
-
-    # Obtener número CAS
     def get_cas(self, smiles: str) -> str:
         """
-        Obtain Cas Number with SMILES.
-
-        Args:
-            smiles (str): SMILES or Cannonical SMILES.
-        Returns:
-            syn (str): CAS Number or message error
+        Obtiene el número CAS basado en la estructura SMILES.
         """
         try:
-            # Buscar compuestos en PubChem usando SMILES
             compounds = pcp.get_compounds(smiles, "smiles")
-
-            if compounds:
-                # Obtener los sinónimos del primer compuesto encontrado
-                synonyms = compounds[0].synonyms
-
-                # Buscar el número CAS en los sinónimos
-                for syn in synonyms:
-                    # El número CAS sigue el formato XXXX-XX-X
+            if compounds and compounds[0].synonyms:
+                for syn in compounds[0].synonyms:
                     if "-" in syn and syn.replace("-", "").isdigit():
                         return syn
-
             return "No disponible"
         except Exception as e:
-            return f"Error: {e}"
+            logging.error(f"Error in get_cas: {e}")
+            return "Error"
 
-    # Obtener JSON de la API de PubChem
-    async def get_specific_properties(self, cid: str) -> Optional[Dict]:
+    async def get_specific_properties(self, cid: str) -> Dict[str, List[str]]:
         """
-        Fetch the API endpoint to obtain melting point,boiling point,
-        density, pKa, LogP, stability, solubility, description and
-        storage conditions
-
-        Args: cid (str): Compound id
-
-        Returns:
-            dict: A dictionary containing all fetched properties.
+        Obtiene propiedades específicas del compuesto en PubChem.
         """
-
-        base_url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/"
-
-        # Url para cada propiedad
-        urls = {
-            "description_url": f"{base_url}{cid}/JSON?heading=physical+description",
-            "pka_url": f"{base_url}{cid}/JSON?heading=Dissociation+Constants",
-            "log_url": f"{base_url}{cid}/JSON?heading=LogP",
-            "solubility_url": f"{base_url}{cid}/JSON?heading=solubility",
-            "storage_url": f"{base_url}{cid}/JSON?heading=storage+conditions",
-            "melting_url": f"{base_url}{cid}/JSON?heading=Melting+Point",
-            "boiling_url": f"{base_url}{cid}/JSON?heading=Boiling+Point",
-            "molecular_url": f"{base_url}{cid}/JSON?heading=Molecular+Formula",
-            "iupac_url": f"{base_url}{cid}/JSON?heading=IUPAC+Name",
+        endpoints = {
+            "Physical Description": f"{self.PUBCHEM_BASE_URL}{cid}/JSON?heading=physical+description",
+            "Dissociation Constants": f"{self.PUBCHEM_BASE_URL}{cid}/JSON?heading=Dissociation+Constants",
+            "LogP": f"{self.PUBCHEM_BASE_URL}{cid}/JSON?heading=LogP",
+            "Solubility": f"{self.PUBCHEM_BASE_URL}{cid}/JSON?heading=solubility",
+            "Melting Point": f"{self.PUBCHEM_BASE_URL}{cid}/JSON?heading=Melting+Point",
+            "Boiling Point": f"{self.PUBCHEM_BASE_URL}{cid}/JSON?heading=Boiling+Point",
+            "Molecular Formula": f"{self.PUBCHEM_BASE_URL}{cid}/JSON?heading=Molecular+Formula",
+            "IUPAC Name": f"{self.PUBCHEM_BASE_URL}{cid}/JSON?heading=IUPAC+Name",
         }
+        tasks = [self.fetch(url) for url in endpoints.values()]
+        responses = await asyncio.gather(*tasks, return_exceptions=True)
+        data = {}
+        for key, response in zip(endpoints.keys(), responses):
+            if isinstance(response, dict):
+                data[key] = self.extract_property(response)
+            else:
+                logging.error(f"Error fetching {key}: {response}")
+                data[key] = []
+        return data
 
-        semaphore = asyncio.Semaphore(1)  # Número de solicitudes simultaneas
-        results = {}
-        async with httpx.AsyncClient() as client:
-            tasks = [
-                self.fetch_data_from_api(client, url, semaphore)
-                for url in urls.values()
-            ]
-            responses = await asyncio.gather(*tasks)
-            # Asignar los resultados a las propiedades correspondientes
-            for property_name, response in zip(urls.keys(), responses):
-                results[property_name] = response
-
-        result = self.extract_properties(results)
-
-        return result
-
-    # Extraer propiedades del API
-    def extract_properties(self, data: dict) -> Dict[str, List[str]]:
+    def extract_property(self, response: Dict) -> List[str]:
         """
-        Extract specific information from the APIs.
-
-        Args:
-            data (Dict): Dictionary that represents a structure of JSON
-
-        Returns:
-            Dict[str, List[str]]: Dictionary with a list of values extracts from JSON.
+        Extrae información relevante de un JSON de respuesta.
         """
-        # Diccionario donde se guardan las propiedades
-        results = {
-            "Physical Description": [],
-            "Melting Point": [],
-            "Boiling Point": [],
-            "Density": [],
-            "Dissociation Constants": [],
-            "LogP": [],
-            "Solubility": [],
-            "Storage Conditions": [],
-            "Molecular Formula": [],
-            "IUPAC Name": [],
-        }
-
-        # Mapeo de TOCHeading
-        toc_heading_map = {
-            "Physical Description": "Physical Description",
-            "Melting Point": "Melting Point",
-            "Boiling Point": "Boiling Point",
-            "Density": "Density",
-            "Dissociation Constants": "Dissociation Constants",
-            "LogP": "LogP",
-            "Solubility": "Solubility",
-            "Storage Conditions": "Storage Conditions",
-            "Molecular Formula": "Molecular Formula",
-            "IUPAC Name": "IUPAC Name",
-        }
-
-        # Función recursiva para buscar en la estructura del JSON
-        def recursive_search(obj: Union[dict, list, any]):
-            """
-            Recursive search to extract specific information from JSON.
-
-            Args:
-            obj (Union[dict, list, Any]):
-                -If dict, iterate on the keys and values to search for specific keys.
-                -If list, iterate on elements and recursively calls this function.
-                -If any (string, number, etc.), don't make any aditional action.
-
-            Note:
-                This function modify the dictionary of extract_properties.
-            """
-            if isinstance(
-                obj, dict
-            ):  # Si es un diccionario, busca dentro de sus valores
-                for key, value in obj.items():
-                    if key == "TOCHeading" and value in toc_heading_map:
-                        property_name = toc_heading_map[value]
-                        if "Information" in obj:
-                            for info in obj["Information"]:
-                                if (
-                                    "Value" in info
-                                    and "StringWithMarkup" in info["Value"]
-                                ):
-                                    for item in info["Value"]["StringWithMarkup"]:
-                                        if "String" in item:
-                                            results[property_name].append(
-                                                item["String"]
-                                            )
+        results = []
+        def recursive_search(obj):
+            if isinstance(obj, dict):
+                for k, v in obj.items():
+                    if k == "String" and isinstance(v, str):
+                        results.append(v)
                     else:
-                        recursive_search(value)
-            elif isinstance(obj, list):  # Si es una lista, itera sobre sus elementos
+                        recursive_search(v)
+            elif isinstance(obj, list):
                 for item in obj:
                     recursive_search(item)
-
-        # Iterar sobre todas las propiedades en los datos
-        for property_data in data.values():
-            if property_data is not None:  # Ignorar propiedades sin datos
-                recursive_search(property_data)
+        recursive_search(response)
         return results
 
-    # Funcion para extraer información del api
-    async def fetch_data_from_api(
-        self, client: httpx.AsyncClient, url: str, semaphore: asyncio.Semaphore
-    ) -> Optional[Dict]:
+    async def search_external_apis(self, state: LiteratureResearchGraphState):
         """
-        Fetches data from an API endpoint using httpx.
-
-        Args:
-            client (httpx.AsyncClient): The HTTP client.
-            url (str): URL to fetch data from.
-
-        Returns:
-            dict or None: JSON response if successful, otherwise None.
+        Ejecuta la búsqueda de información en ChEMBL y PubChem.
         """
-        async with semaphore:  # Limitar el número de solicitudes al servidor
-            try:
-                response = await client.get(url)
-                if response.status_code == 404:
-                    logging(f"Recurso no encontrado: {url}")
-                    return None
-                response.raise_for_status()
-                return response.json()
-            except httpx.RequestError as e:
-                logging(f"Error al realizar la solicitud al API {url}: {e}")
-                return None
-
-    async def search_external_apis(self, state: LiteratureResearchGraphState, config: RunnableConfig):
         api_name = state["API"].API_name
-        
-        chembl_json = self.get_chembl_data(name = api_name)
+        chembl_json = self.get_chembl_data(api_name)
+        if not chembl_json or "molecules" not in chembl_json or not chembl_json["molecules"]:
+            logging.error(f"No se encontraron datos en ChEMBL para '{api_name}'.")
+            return {"api_external_APIkey_data": None}
+
         molecule = chembl_json["molecules"][0]
         molecule_structures = molecule.get("molecule_structures", {})
-        
         smiles = molecule_structures.get("canonical_smiles", "NA")
-        InChI = molecule_structures.get("standard_inchi", "NA")
         InChiKey = molecule_structures.get("standard_inchi_key", "NA")
-        
         cas_number = self.get_cas(smiles)
-        
         cid = self.get_cid(InChiKey)
-        compound = pcp.get_compounds(InChiKey, "inchi_key")
         
-        # Molecular weight
-        molecular_weight = compound.molecular_weight
-        
+        # Obtener peso molecular usando PubChem
+        compounds = pcp.get_compounds(InChiKey, "inchikey")
+        if compounds:
+            compound = compounds[0]
+            molecular_weight = getattr(compound, "molecular_weight", None)
+        else:
+            molecular_weight = None
+
         specific_properties = await self.get_specific_properties(cid)
-        
-        # API Physical description
-        unique_physical = set(specific_properties["Physical Description"])
-        physical_description = "\n" + "\n".join(
-            f"- {point}" for point in unique_physical
-        )
-        
-        # API solubility
-        unique_solubility = set(specific_properties["Solubility"])
-        solubility = "\n" + "\n".join(
-            f"- {point}" for point in unique_solubility
-        )
-        
-        # Melting point
-        celsius_value = None
-        for point in specific_properties["Melting Point"]:
-            if re.search(r"\d+ °C", point):
-                celsius_value = point
-                break
- 
-        if celsius_value:
-            melting_point = f"{celsius_value}"
-        else:
-            melting_point = (
-                f"{specific_properties["Melting Point"][0]}"
-                if specific_properties["Melting Point"]
-                else "Información no disponible"
-            )
-        
-        # Chemical names
-        unique_iupac = set(specific_properties["IUPAC Name"])
-        first_value = list(unique_iupac)[0]
-        iupac_name = f"{first_value}"
-        
-        # Molecular Structure
-        unique_molecular = set(specific_properties["Molecular Formula"])
-        first_value = list(unique_molecular)[0]
-        molecular_formula = f"{first_value}"
-        
-        # LogP
-        unique_logp = set(specific_properties["LogP"])
-        first_value = list(unique_logp)[0]
-        logp = f"{first_value}"
-        
-        # pKa Dissociation Constant
-        unique_pka = set(specific_properties["Dissociation Constants"])
-        first_value = list(unique_pka)[0]
-        pka = f"{first_value}"
-        
-        # Boiling Point
-        celsius_value = None
- 
-        for point in specific_properties["Boiling Point"]:
-            if re.search(r"\d+ °C", point):
-                celsius_value = point
-                break
- 
-        if celsius_value:
-            boiling_point = f"{celsius_value}"
-        else:
-            boiling_point = (
-                f"{specific_properties["Boiling Point"][0]}"
-                    if specific_properties["Boiling Point"]
-                else "Información no disponible"
-            )
-        
+
+        # Función para extraer temperaturas de manera segura
+        def extract_temp(prop_list: List[str]) -> str:
+            for point in prop_list:
+                if re.search(r"\d+ °C", point):
+                    return point
+            return prop_list[0] if prop_list else "Información no disponible"
+
+        # Función para extraer el primer valor de forma segura
+        def extract_first(prop_list: List[str]) -> str:
+            return prop_list[0] if prop_list and len(prop_list) > 0 else "Información no disponible"
+
         api_external_APIkey_data = APIExternalData(
-            cas_number = cas_number,
-            description = physical_description,
-            solubility = solubility,
-            melting_point = melting_point,
-            chemical_names = iupac_name,
-            molecular_formula = molecular_formula,
-            molecular_weight = molecular_weight,
-            log_p = logp,
-            boiling_point=boiling_point,
-            )
-        
+            cas_number=cas_number,
+            description="\n".join(set(specific_properties.get("Physical Description", []))),
+            solubility="\n".join(set(specific_properties.get("Solubility", []))),
+            melting_point=extract_temp(specific_properties.get("Melting Point", [])),
+            chemical_names=extract_first(specific_properties.get("IUPAC Name", [])),
+            molecular_formula=extract_first(specific_properties.get("Molecular Formula", [])),
+            molecular_weight=molecular_weight,
+            log_p=extract_first(specific_properties.get("LogP", [])),
+            boiling_point=extract_temp(specific_properties.get("Boiling Point", [])),
+        )
         return {"api_external_APIkey_data": api_external_APIkey_data}
-    
-    def run(self, state, config):
-        return self.run(state,config)
+
+    async def run(self, state: LiteratureResearchGraphState):
+        result = await self.search_external_apis(state)
+        await self.client.aclose()
+        return result

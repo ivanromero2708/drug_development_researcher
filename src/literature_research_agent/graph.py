@@ -34,12 +34,11 @@ literature_researcher_graph_builder.add_node("search_external_APIs", search_exte
 
 
 # Logic
-literature_researcher_graph_builder.add_edge(START, "generate_sub_questions")
 literature_researcher_graph_builder. add_edge(START, "search_external_APIs")
+literature_researcher_graph_builder.add_edge("search_external_APIs", "generate_sub_questions")
 literature_researcher_graph_builder.add_edge("generate_sub_questions", "targeted_web_search")
 literature_researcher_graph_builder.add_edge("targeted_web_search", "cluster_related_docs")
 literature_researcher_graph_builder.add_edge("cluster_related_docs", "enrich_documents")
-literature_researcher_graph_builder.add_edge("search_external_APIs", "generate_report")
 literature_researcher_graph_builder.add_edge("enrich_documents", "generate_report")
 literature_researcher_graph_builder.add_edge("generate_report", "extract_information")
 literature_researcher_graph_builder.add_edge("extract_information", END)

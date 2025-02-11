@@ -20,7 +20,7 @@ class Configuration:
     TAVILY_API_KEY: str = os.getenv("TAVILY_API_KEY")
     number_of_queries: int = 4
     max_results_query: int = 7
-    max_tokens_per_source: int = 4000
+    max_tokens_per_source: int = 6000
     
     @classmethod
     def from_runnable_config(cls, config):
