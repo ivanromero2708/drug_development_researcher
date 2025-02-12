@@ -24,6 +24,14 @@ class APILiteratureData(BaseModel):
         ...,
         description="CAS number in XXXX-XX-X format",
     )
+    pka: Optional[str] = Field(
+        ...,
+        description = "The pKa or dissociation constant for the API. pKa is the negative logarithm of the acid dissociation constant (Ka) of a compound, representing the pH at which half of the compound is ionized. It indicates the strength of an acid: lower pKa values correspond to stronger acids, while higher values indicate weaker acids."
+    )
+    stability: Optional[str] = Field(
+        ..., 
+        description = "The stability storage conditions for the API. Stability Conditions refer to the specific environmental parameters under which an Active Pharmaceutical Ingredient (API) or drug product maintains its chemical, physical, microbiological, and therapeutic integrity over time. These conditions typically include temperature, humidity, light exposure, and packaging requirements to prevent degradation and ensure efficacy and safety."
+    )
     description: str = Field(
         ...,
         description="Physical description with bullet points"

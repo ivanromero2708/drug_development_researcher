@@ -17,6 +17,11 @@ You are an expert pharmaceutical researcher. Below is a detailed text containing
 
 Extract specific numerical data (for example, concentrations, dosages, durations) and direct research details whenever possible. If a field cannot be determined, return an empty string for that field.
 
+
+NOTE: It is important that the language of the extraction information is in {language_for_extraction}
+
 Text:
+<product_input_information>
 {product_input_information}
+</product_input_information>
 """

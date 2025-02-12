@@ -43,7 +43,7 @@ class EnrichDocuments:
                     content = doc.get("content") or ""
                     context_parts += f"URL: {url}\n"
                     context_parts += "---- Raw Content ----\n"
-                    context_parts += raw_content[:char_limit] + "... [truncated]" + "\n"
+                    #context_parts += raw_content[:char_limit] + "... [truncated]" + "\n"
                     context_parts += "---- Content ----\n"
                     context_parts += content + "\n\n"
         return {"context": context_parts}

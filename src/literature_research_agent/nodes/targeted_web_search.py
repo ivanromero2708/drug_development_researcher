@@ -21,7 +21,8 @@ class TargetedWebSearch:
                 response = await self.tavily_client.search(
                     query=query_with_date,
                     max_results=max_results_query,
-                    include_raw_content=True
+                    include_raw_content=True,
+                    #include_domains = ["https://www.sciencedirect.com/", "https://patents.google.com/", "https://www.cochranelibrary.com/", "https://core.ac.uk/"],
                 )
                 return response['results']
             except Exception as e:

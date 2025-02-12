@@ -24,7 +24,6 @@ class GenerateSubQuestions:
         API = state["API"]
         product_information = state["product_information_child"]
         
-        product_dosage_form = product_information.product_dosage_form
         route_of_administration = product_information.route_of_administration
         
         # Get configuration and initialize the LLM.
@@ -36,7 +35,6 @@ class GenerateSubQuestions:
         # Build the prompt using the provided metaprompt guidelines.
         system_instructions = PROMPT_GENERATE_SUB_QUESTIONS.format(
             API=API,
-            product_dosage_form=product_dosage_form,
             route_of_administration = route_of_administration,
             number_of_queries = number_of_queries,
         )

@@ -10,7 +10,7 @@ from src.configuration import Configuration
 class TestDrugDevelopmentResearcherGraph(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         # Define the input document path (using a raw string to handle Windows backslashes).
-        self.input_document_path = r"C:\Users\Ivan\OneDrive - Grupo Procaps\Portafolio NTF\26. GESTIÓN ab initio DE LA ESTABILIDAD\Documentos Ejemplos\Dronabinol +Aceta\Unigel Dronabinol + Acetazolamida - SOW (STATEMENT OF WORK).pdf"
+        self.input_document_path = r"C:\Users\Ivan\OneDrive - Grupo Procaps\Portafolio NTF\26. GESTIÓN ab initio DE LA ESTABILIDAD\Documentos Ejemplos\melatonina\SOW THC + Melatonina.pdf"
 
         # Prepare the initial state for the graph execution.
         # Note: DrugDevelopmentResearchGraphState is defined as a TypedDict so we use a plain dictionary.

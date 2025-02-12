@@ -62,19 +62,22 @@ class ExtractInputInformation:
 
         # Initialize the language model using the configuration.
         conf = Configuration.from_runnable_config(config)
-        llm = ChatOpenAI(model=conf.gpt4o, temperature=0)
+        llm = ChatOpenAI(model=conf.o3mini, reasoning_effort = "medium")
         # Configure structured output for the ProductInformation model.
         structured_llm = llm.with_structured_output(ProductInformation)
 
+        language_for_extraction = conf.language_for_extraction
+        
         # Build the prompt.
         # PROMPT_EXTRACT_INPUT_INFORMATION is assumed to be a string with a placeholder {product_input_information}.
-        human_instructions = PROMPT_EXTRACT_INPUT_INFORMATION.format(
-            product_input_information=product_input_information
+        system_instructions = PROMPT_EXTRACT_INPUT_INFORMATION.format(
+            product_input_information=product_input_information,
+            language_for_extraction = language_for_extraction,
         )
 
         messages = [
-            SystemMessage(content="Extract the product information as structured JSON following the provided keys."),
-            HumanMessage(content=human_instructions)
+            SystemMessage(content=system_instructions),
+            HumanMessage(content=f"Extract the product information as structured JSON following the provided keys, in the desired language {language_for_extraction}")
         ]
 
         # Invoke the language model to extract the structured product information.

@@ -15,15 +15,18 @@ class GenerateReport:
         API = state["API"]
         context = state["context"]
         api_external_APIkey_data = state["api_external_APIkey_data"]
-        cas_number = api_external_APIkey_data.cas_number,
-        physical_description = api_external_APIkey_data.description,
-        solubility = api_external_APIkey_data.solubility,
-        melting_point = api_external_APIkey_data.melting_point,
-        iupac_name = api_external_APIkey_data.chemical_names,
-        molecular_formula = api_external_APIkey_data.molecular_formula,
-        molecular_weight = api_external_APIkey_data.molecular_weight,
-        logp = api_external_APIkey_data.log_p,
-        boiling_point=api_external_APIkey_data.boiling_point,
+        cas_number = api_external_APIkey_data.cas_number
+        physical_description = api_external_APIkey_data.description
+        solubility = api_external_APIkey_data.solubility
+        melting_point = api_external_APIkey_data.melting_point
+        iupac_name = api_external_APIkey_data.chemical_names
+        molecular_formula = api_external_APIkey_data.molecular_formula
+        molecular_weight = api_external_APIkey_data.molecular_weight
+        logp = api_external_APIkey_data.log_p
+        boiling_point=api_external_APIkey_data.boiling_point
+        pka = api_external_APIkey_data.pka
+        stability_conditions = api_external_APIkey_data.stability
+        
         
         # Get configuration and initialize the LLM
         configurable = Configuration.from_runnable_config(config)
@@ -47,6 +50,8 @@ class GenerateReport:
             molecular_weight = molecular_weight,
             log_p = logp,
             boiling_point=boiling_point,
+            pka = pka,
+            stability_conditions = stability_conditions,
         )
         human_msg = HumanMessage(content = human_instructions)
         

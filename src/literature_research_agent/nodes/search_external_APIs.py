@@ -6,25 +6,17 @@ import requests
 import pubchempy as pcp
 from typing import Optional, Dict, List
 from pydantic import BaseModel
-from src.literature_research_agent.state import LiteratureResearchGraphState
+from src.literature_research_agent.state import LiteratureResearchGraphState, APIExternalData
 
 # Configuración básica de logging
 logging.basicConfig(level=logging.INFO)
 
-# Modelo de datos para la salida (sin valores default problemáticos)
-class APIExternalData(BaseModel):
-    cas_number: Optional[str] = None
-    description: Optional[str] = None
-    solubility: Optional[str] = None
-    melting_point: Optional[str] = None
-    chemical_names: Optional[str] = None
-    molecular_formula: Optional[str] = None
-    molecular_weight: Optional[float] = None
-    log_p: Optional[str] = None
-    boiling_point: Optional[str] = None
-
 class SearchExternalAPIs:
-    CHEMBL_API_BASE_URL = "https://www.ebi.ac.uk/chembl/api/data"
+    """
+    Nodo que evita el uso de la base de datos ChEMBL, y en su lugar
+    obtiene la información necesaria de PubChem, incluyendo CID, CAS
+    e isomeric SMILES.
+    """
     PUBCHEM_BASE_URL = "https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/"
     
     def __init__(self, max_retries: int = 3, retry_delay: int = 2):
@@ -48,52 +40,45 @@ class SearchExternalAPIs:
             await asyncio.sleep(self.retry_delay)
         return None
 
-    def get_chembl_data(self, name: str) -> Optional[Dict]:
+    def get_general_information(self, name: str) -> Optional[Dict]:
         """
-        Obtiene información de la API de CHEMBL por nombre del compuesto.
+        Busca el compuesto por 'name' en PubChem y extrae:
+          - CID
+          - SMILES isomérico
+          - Número CAS (si lo encuentra entre los sinónimos)
         """
-        url = f"{self.CHEMBL_API_BASE_URL}/molecule/search?q={name}&format=json"
-        try:
-            response = requests.get(url, headers={"Content-Type": "application/json"}, timeout=10)
-            response.raise_for_status()
-            return response.json() if response.text.strip() else None
-        except requests.RequestException as e:
-            logging.error(f"Error in get_chembl_data: {e}")
-            return None
+        compounds = pcp.get_compounds(name, "name")
+        if compounds:
+            compound = compounds[0]
+            cid = compound.cid
+            smiles = compound.isomeric_smiles
+            sinonimos = compound.synonyms
 
-    def get_cid(self, inchikey: str) -> Optional[str]:
-        """
-        Obtiene el CID de PubChem basado en el InChIKey.
-        """
-        try:
-            compounds = pcp.get_compounds(inchikey, namespace="inchikey")
-            return compounds[0].cid if compounds else None
-        except Exception as e:
-            logging.error(f"Error in get_cid: {e}")
-            return None
+            # Patrón para un número CAS: dígitos - dígitos - dígito
+            patron_cas = re.compile(r"\d{2,7}-\d{2}-\d")
+            cas_numbers = [s for s in sinonimos if patron_cas.match(s)]
 
-    def get_cas(self, smiles: str) -> str:
-        """
-        Obtiene el número CAS basado en la estructura SMILES.
-        """
-        try:
-            compounds = pcp.get_compounds(smiles, "smiles")
-            if compounds and compounds[0].synonyms:
-                for syn in compounds[0].synonyms:
-                    if "-" in syn and syn.replace("-", "").isdigit():
-                        return syn
-            return "No disponible"
-        except Exception as e:
-            logging.error(f"Error in get_cas: {e}")
-            return "Error"
+            if cid and smiles and cas_numbers:
+                return {
+                    "cid": cid,
+                    "smiles": smiles,
+                    "cas_number": cas_numbers[0]
+                }
+            else:
+                logging.warning("Información no disponible en PubChem para el CAS, CID o SMILES.")
+        else:
+            logging.warning(f"No se encontró el compuesto: {name}")
+        return None
 
     async def get_specific_properties(self, cid: str) -> Dict[str, List[str]]:
         """
-        Obtiene propiedades específicas del compuesto en PubChem.
+        Obtiene propiedades específicas del compuesto en PubChem
+        (description, solubility, etc.) a través de endpoints JSON.
         """
         endpoints = {
             "Physical Description": f"{self.PUBCHEM_BASE_URL}{cid}/JSON?heading=physical+description",
             "Dissociation Constants": f"{self.PUBCHEM_BASE_URL}{cid}/JSON?heading=Dissociation+Constants",
+            "Stability conditions": f"{self.PUBCHEM_BASE_URL}{cid}/JSON?heading=Stability+/+Shelf+Life",
             "LogP": f"{self.PUBCHEM_BASE_URL}{cid}/JSON?heading=LogP",
             "Solubility": f"{self.PUBCHEM_BASE_URL}{cid}/JSON?heading=solubility",
             "Melting Point": f"{self.PUBCHEM_BASE_URL}{cid}/JSON?heading=Melting+Point",
@@ -101,8 +86,10 @@ class SearchExternalAPIs:
             "Molecular Formula": f"{self.PUBCHEM_BASE_URL}{cid}/JSON?heading=Molecular+Formula",
             "IUPAC Name": f"{self.PUBCHEM_BASE_URL}{cid}/JSON?heading=IUPAC+Name",
         }
+
         tasks = [self.fetch(url) for url in endpoints.values()]
         responses = await asyncio.gather(*tasks, return_exceptions=True)
+
         data = {}
         for key, response in zip(endpoints.keys(), responses):
             if isinstance(response, dict):
@@ -114,9 +101,10 @@ class SearchExternalAPIs:
 
     def extract_property(self, response: Dict) -> List[str]:
         """
-        Extrae información relevante de un JSON de respuesta.
+        Extrae cadenas 'String' de la estructura JSON devuelta por PubChem.
         """
         results = []
+
         def recursive_search(obj):
             if isinstance(obj, dict):
                 for k, v in obj.items():
@@ -127,46 +115,48 @@ class SearchExternalAPIs:
             elif isinstance(obj, list):
                 for item in obj:
                     recursive_search(item)
+
         recursive_search(response)
         return results
 
     async def search_external_apis(self, state: LiteratureResearchGraphState):
         """
-        Ejecuta la búsqueda de información en ChEMBL y PubChem.
+        Obtiene la información del compuesto a partir de PubChem:
+        - CID, SMILES y CAS (get_general_information)
+        - Peso molecular y propiedades específicas (get_specific_properties)
         """
         api_name = state["API"].API_name
-        chembl_json = self.get_chembl_data(api_name)
-        if not chembl_json or "molecules" not in chembl_json or not chembl_json["molecules"]:
-            logging.error(f"No se encontraron datos en ChEMBL para '{api_name}'.")
+        general_info = self.get_general_information(api_name)
+        if not general_info:
+            logging.error(f"No se pudo obtener información general para '{api_name}'.")
             return {"api_external_APIkey_data": None}
 
-        molecule = chembl_json["molecules"][0]
-        molecule_structures = molecule.get("molecule_structures", {})
-        smiles = molecule_structures.get("canonical_smiles", "NA")
-        InChiKey = molecule_structures.get("standard_inchi_key", "NA")
-        cas_number = self.get_cas(smiles)
-        cid = self.get_cid(InChiKey)
-        
-        # Obtener peso molecular usando PubChem
-        compounds = pcp.get_compounds(InChiKey, "inchikey")
-        if compounds:
-            compound = compounds[0]
-            molecular_weight = getattr(compound, "molecular_weight", None)
-        else:
+        cid = general_info["cid"]
+        smiles = general_info["smiles"]
+        cas_number = general_info["cas_number"]
+
+        # Obtener peso molecular desde PubChem, usando el CID
+        try:
+            compounds = pcp.get_compounds(cid, "cid")
+            compound = compounds[0] if compounds else None
+            molecular_weight = getattr(compound, "molecular_weight", None) if compound else None
+        except Exception as e:
+            logging.error(f"Error al obtener peso molecular: {e}")
             molecular_weight = None
 
-        specific_properties = await self.get_specific_properties(cid)
+        # Obtener propiedades adicionales de PubChem
+        specific_properties = await self.get_specific_properties(str(cid))
 
-        # Función para extraer temperaturas de manera segura
         def extract_temp(prop_list: List[str]) -> str:
+            """Extrae la primera cadena que contenga 'XX °C', si existe."""
             for point in prop_list:
-                if re.search(r"\d+ °C", point):
+                if re.search(r"\d+\s?°C", point):
                     return point
             return prop_list[0] if prop_list else "Información no disponible"
 
-        # Función para extraer el primer valor de forma segura
         def extract_first(prop_list: List[str]) -> str:
-            return prop_list[0] if prop_list and len(prop_list) > 0 else "Información no disponible"
+            """Toma el primer valor de la lista, si existe."""
+            return prop_list[0] if prop_list else "Información no disponible"
 
         api_external_APIkey_data = APIExternalData(
             cas_number=cas_number,
@@ -178,10 +168,17 @@ class SearchExternalAPIs:
             molecular_weight=molecular_weight,
             log_p=extract_first(specific_properties.get("LogP", [])),
             boiling_point=extract_temp(specific_properties.get("Boiling Point", [])),
+            pka = extract_first(specific_properties.get("Dissociation Constants", [])),
+            stability = "\n".join(set(specific_properties.get("Stability conditions", []))),
         )
+
         return {"api_external_APIkey_data": api_external_APIkey_data}
 
     async def run(self, state: LiteratureResearchGraphState):
+        """
+        Método principal que se invoca desde el flujo. 
+        Retorna un diccionario con la información obtenida.
+        """
         result = await self.search_external_apis(state)
         await self.client.aclose()
         return result

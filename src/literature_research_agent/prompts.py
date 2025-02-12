@@ -1,3 +1,54 @@
+PROMPT_EXTRACT_INFORMATION = """
+You are an expert pharmaceutical researcher specializing in pharmaceutical chemistry. Your task is to analyze the consolidated research report and extract all relevant data points into a structured JSON object that adheres exactly to the schema defined by APILiteratureData. The report is detailed, technical, and written in a scientific tone typical of a research article. Use precise and exhaustive language to capture all quantitative and qualitative details.
+
+The data fields to extract are:
+
+api_name: The official name of the API as presented in the report title or header.
+cas_number: The unique Chemical Abstracts Service (CAS) registry number in the format XXXX-XX-X.
+description: A detailed physical description of the API, including appearance, texture, and notable physical properties (presented as bullet points if applicable).
+solubility: A comprehensive summary of the API’s solubility in various solvents, including quantitative measurements and conditions.
+melting_point: The melting point of the API, expressed in a format such as "value ± deviation °C" and including measurement conditions.
+chemical_names: The complete IUPAC name of the API, detailing its chemical structure using standardized nomenclature.
+molecular_formula: The molecular formula of the API, presented in Hill notation.
+molecular_weight: The molecular weight of the API in g/mol.
+log_p: The octanol-water partition coefficient (LogP), indicating the API’s lipophilicity, with relevant measurement details.
+boiling_point: The boiling point of the API, including temperature, pressure conditions (e.g., "value °C at 0.02 mm Hg"), and units.
+polymorphs: A thorough description of the API’s polymorphic forms, including the number of forms, crystal systems, melting points, density variations, thermodynamic data, and literature references.
+scheme_of_degradation_route: A detailed explanation of the API’s degradation pathways, specifying conditions (e.g., heat, UV, pH), mechanistic steps, degradation products, kinetic parameters, and supporting references.
+stability_indicators: An exhaustive description of the API’s stability data, including recovery percentages, assay results from stability-indicating methods, observed trends under stress conditions, and citations.
+impurities: Detailed information on any impurities, including chemical identities, CAS numbers, quantitative levels, origins (e.g., degradation or synthesis byproducts), and literature support.
+biopharmaceutical_classification: A detailed classification of the API according to the Biopharmaceutical Classification System (BCS), with solubility, permeability data, and experimental correlations, including references.
+hygroscopicity: Detailed data on the API’s hygroscopic properties, including experimental conditions (e.g., relative humidity, temperature) and quantitative moisture uptake measurements, with citations.
+chirality_or_specific_optical_rotation: Information on the API’s chiral properties or specific optical rotation, including measured values, enantiomeric purity, and stereochemical analysis, supported by literature.
+glass_transition_temperature: The glass transition temperature (Tg) of the API, including the method of determination (e.g., DSC), exact values or ranges, and literature references.
+degradation_temperature: The temperature at which the API degrades, including experimental conditions, identified thresholds, and any kinetic data, with supporting references.
+rld_special_characteristics: A comprehensive description of the special characteristics of the Reference Listed Drug (RLD), such as unique crystalline forms, particle size distribution, or other formulation-specific attributes, with literature citations.
+rld_manufacturing_process_info: A detailed summary of the manufacturing process for the RLD, including process steps, quality control measures, and recommended processing conditions, supported by literature and regulatory references.
+
+Steps:
+1. Thoroughly review the pharmaceutical consolidated report.
+2. Identify and extract each data field as specified above, ensuring that all numerical values, units, and literature citations are captured accurately.
+3. Use technical, precise language appropriate for pharmaceutical chemistry and maintain a scientific, research-article tone.
+4. Map the extracted data to the corresponding keys in the JSON object.
+5. If a field is missing in the report, assign an empty string or null value.
+6. Output the result solely as a JSON object with keys exactly matching the APILiteratureData schema, without any additional commentary.
+
+Output Format
+The final output must be a JSON object formatted as follows (do not wrap in markdown code blocks):
+
+{{ "api_name": "...", "cas_number": "...", "description": "...", "solubility": "...", "melting_point": "...", "chemical_names": "...", "molecular_formula": "...", "molecular_weight": ..., "log_p": "...", "boiling_point": "...", "polymorphs": "...", "scheme_of_degradation_route": "...", "stability_indicators": "...", "impurities": "...", "biopharmaceutical_classification": "...", "hygroscopicity": "...", "chirality_or_specific_optical_rotation": "...", "glass_transition_temperature": "...", "degradation_temperature": "...", "rld_special_characteristics": "...", "rld_manufacturing_process_info": "..." }}
+
+Examples: For example, if the report specifies that the API is "Dronabinol" with a CAS Number of "1972-08-3", your output should begin as:
+
+{{ "api_name": "Dronabinol", "cas_number": "1972-08-3", "description": "...", ... }}
+
+Notes:
+Use Markdown hyperlinks for inline citations when applicable.
+The output must be detailed, precise, and use technical language from pharmaceutical chemistry.
+Do not include any additional text besides the JSON object.
+"""
+
+
 PROMPT_GENERATE_REPORT = """
 You are an expert pharmaceutical researcher tasked with writing a comprehensive, fact-based report on the API **{API}** using validated chemical data.
 Write the report in plain text format WITHOUT including a title in the body; the title and date will be added separately.
@@ -13,6 +64,8 @@ Your report must be highly precise and data-rich. Use ONLY the validated data fr
 - Boiling Point: <boiling_point>{boiling_point}</boiling_point>
 - Solubility: <solubility>{solubility}</solubility>
 - Physical Description: <description>{description}</description>
+- pKa: <pKa>{pka}</pKa>
+- Stability conditions: <stability_conditions>{stability_conditions}</stability_conditions>
 
 Focus on the following sections and ensure that each API property is addressed as defined below:
 
@@ -32,6 +85,10 @@ Focus on the following sections and ensure that each API property is addressed a
    - IUPAC Name: Just report the value.
    
    - LogP: Just report the values.
+   
+   - Stability conditions: A detailed scientific- technical description regarding the storage conditions under which the API is stable at shelf-life.
+   
+   - pKa: Report the pKa values.
    
    - Melting Point: Just report the values.
    
@@ -175,54 +232,59 @@ Return your output exactly in the following JSON format (do not include any mark
 """
 
 PROMPT_GENERATE_SUB_QUESTIONS = """
-Generate {number_of_queries} detailed search queries that, when used for literature research, will uncover comprehensive information about the API’s properties and behavior in its pharmaceutical context.
-- Polymorphs – Detailed description of polymorphic forms of the active substance identified in the literature.
-- Scheme of degradation routes – Detailed scheme of degradation routes.
-- Stability indicators – Key stability indicators for the drug product obtained from the literature.
-- Impurities – Information on relevant impurities of the Active Ingredient derived from the literature.
-- Biopharmaceutical classification – Classification based on physicochemical properties and permeability.
-- Hygroscopicity – Data on hygroscopicity collected through relevant literature.
-- Chirality or specific optical rotation – Information on chirality or specific optical rotation for the API.
-- Glass transition temperature – Information based on available studies in the literature.
-- Degradation temperature – Temperature at which API degradation is identified in the literature.
-- RLD special characteristics – Special characteristics of the API and excipients for the RLD, such as crystalline form or particle size.
-- RLD manufacturing process information – Information on the manufacturing process for the RLD, including controls and recommended conditions.
+Generate {number_of_queries} detailed search queries that, when used for literature research, will uncover comprehensive information about the API’s properties and behavior in its pharmaceutical context:
 
-1. Inputs:
-- Active Pharmaceutical Ingredient (API) to be investigated: {API}
-- Product desired dosage form: {product_dosage_form}
-- Product route of administration: {route_of_administration}
+Polymorphs – Detailed description of polymorphic forms of the active substance identified in the literature.
+Scheme of degradation routes – Detailed scheme of degradation routes.
+Stability indicators – Key stability indicators for the drug product obtained from the literature.
+Impurities – Information on relevant impurities of the Active Ingredient derived from the literature.
+Biopharmaceutical classification – Classification based on physicochemical properties and permeability.
+Hygroscopicity – Data on hygroscopicity collected through relevant literature.
+Chirality or specific optical rotation – Information on chirality or specific optical rotation for the API.
+Glass transition temperature – Information based on available studies in the literature.
+Degradation temperature – Temperature at which API degradation is identified in the literature.
+RLD special characteristics – Special characteristics of the API and excipients for the RLD, such as crystalline form or particle size.
+RLD manufacturing process information – Information on the manufacturing process for the RLD, including controls and recommended conditions.
+Inputs:
 
-2.Additional details:
-Use the provided API, dosage form, and route of administration as contextual information.
+Active Pharmaceutical Ingredient (API) to be investigated: {API}
+Product route of administration: {route_of_administration}
+Additional details:
+
+Use the provided API and route of administration as contextual information.
 Ensure that the generated queries collectively cover all eleven aspects listed above.
+Tailor each query to retrieve literature specifically from ScienceDirect, Google Scholar, Google Patents, and USP/BP monographs. Where beneficial, use platform-specific keywords or filters.
 For each aspect, include reasoning or contextual analysis on what specific information should be captured. Present the reasoning before listing the final search queries.
 If possible, combine related aspects in one query while ensuring that no required field is omitted.
 Avoid any conclusions or definitive statements until all reasoning steps have been presented.
+Output Format:
+The final answer should be a JSON object with one key: queries. The value for queries must be an array of strings, where each string is a search query that targets one or more of the required aspects. The JSON must not include any markdown formatting or code block markers. It is important that you generate {number_of_queries} queries that group all the needed information from the API.
 
-3. Output Format: The final answer should be a JSON object with one key: queries: an array of strings, where each string is a search query targeting one or more of the required aspects. The JSON must not include any markdown formatting or code block markers. It is important that you generate {number_of_queries} queries that group all the needed information from the API
+Examples:
 
-4. Examples:
-- "Dronabinol": 
-    - "What are the reported polymorphic forms and degradation schemes of Dronabinol in capsule formulations for oral administration, and which stability indicators are highlighted in the literature?"
-    - "How do impurities, hygroscopicity, and chirality or specific optical rotation influence the formulation of Dronabinol in capsule dosage forms for oral administration?"
-    - "What are the known glass transition temperature and degradation temperature values for Dronabinol, and what RLD special characteristics and manufacturing process details are described in relevant studies?"
+For Dronabinol:
 
-- "Acetazolamide": 
-    - "What are the known polymorphic forms and detailed degradation routes of Acetazolamide in tablet formulations for oral administration, including key stability indicators from the literature?"
-    - "How are impurities, biopharmaceutical classification, and hygroscopicity characterized for Acetazolamide in tablet dosage forms, and what impact do they have on formulation stability?"
-    - "What information is available regarding the chirality or specific optical rotation, glass transition temperature, and degradation temperature of Acetazolamide, along with its RLD special characteristics and manufacturing process details?"
-- "Aspirin":
-    - "What are the reported polymorphic forms and degradation routes for Aspirin in tablet formulations for oral administration, and what stability indicators have been identified in the literature?"
-    - "How do impurities, biopharmaceutical classification, and hygroscopicity affect Aspirin's formulation in tablet dosage forms for oral administration?"
-    - "What data exists on the glass transition temperature, degradation temperature, and RLD special characteristics and manufacturing process information for Aspirin in oral tablet formulations?"
-- "Vonoprazan": 
-    - "What are the known polymorphic forms and degradation schemes of Vonoprazan in tablet formulations for oral administration, and which stability indicators are reported in scientific literature?"
-    - "How are impurities, biopharmaceutical classification, and hygroscopicity described for Vonoprazan in tablet dosage forms, and what insights are available on chirality or specific optical rotation?"
-    - "What information is available on the glass transition temperature, degradation temperature, and RLD special characteristics and manufacturing process details for Vonoprazan in oral formulations?"
+"What are the reported polymorphic forms and degradation schemes of Dronabinol for oral administration, and which stability indicators are highlighted in the literature?"
+"How do impurities, hygroscopicity, and chirality or specific optical rotation influence the formulation of Dronabinol for oral administration?"
+"What are the known glass transition temperature and degradation temperature values for Dronabinol, and what RLD special characteristics and manufacturing process details are described in relevant studies?"
+For Acetazolamide:
 
-5. Notes:
-Begin with your reasoning or contextual analysis for each required aspect.
+"What are the known polymorphic forms and detailed degradation routes of Acetazolamide for oral administration, including key stability indicators from the literature?"
+"How are impurities, biopharmaceutical classification, and hygroscopicity characterized for Acetazolamide, and what impact do they have on formulation stability?"
+"What information is available regarding the chirality or specific optical rotation, glass transition temperature, and degradation temperature of Acetazolamide, along with its RLD special characteristics and manufacturing process details?"
+For Aspirin:
+
+"What are the reported polymorphic forms and degradation routes for Aspirin for oral administration, and what stability indicators have been identified in the literature?"
+"How do impurities, biopharmaceutical classification, and hygroscopicity affect Aspirin’s formulation for oral administration?"
+"What data exists on the glass transition temperature, degradation temperature, and RLD special characteristics and manufacturing process information for Aspirin?"
+For Vonoprazan:
+
+"What are the known polymorphic forms and degradation schemes of Vonoprazan for oral administration, and which stability indicators are reported in scientific literature?"
+"How are impurities, biopharmaceutical classification, and hygroscopicity described for Vonoprazan, and what insights are available on chirality or specific optical rotation?"
+"What information is available on the glass transition temperature, degradation temperature, and RLD special characteristics and manufacturing process details for Vonoprazan in oral formulations?"
+Notes:
+
+Begin your answer with the reasoning or contextual analysis for each required aspect.
 End with the final JSON output listing the generated search queries.
 Ensure that all required fields are addressed without omitting any detail.
 """
