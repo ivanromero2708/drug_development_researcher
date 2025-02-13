@@ -50,7 +50,7 @@ class WebResearch:
 
     async def web_research(self, state: PropertyResearchGraphState, config: RunnableConfig):
         """
-        Conducts a Tavily Search and stores retrieved documents.
+        Conducts a Tavily Search and stores retrieved documents ordered by score.
         """
         # Retrieve search query safely
         query = state.get("query", None)
@@ -61,7 +61,6 @@ class WebResearch:
         # Retrieve configuration values
         configurable = Configuration.from_runnable_config(config)
         max_results_query = configurable.max_results_query
-
         max_tokens_per_source = configurable.max_tokens_per_source
         
         # Append date to query to ensure recent results
@@ -74,9 +73,11 @@ class WebResearch:
                 max_results=max_results_query,
                 include_raw_content=True,
             )
-
             # Ensure response contains 'results'
             web_research_results = response.get("results", [])
+            
+            # Ordenar los resultados por "score" de mayor a menor
+            web_research_results = sorted(web_research_results, key=lambda x: x.get("score", 0), reverse=True)
 
         except Exception as e:
             logging.error(f"Error during Tavily search: {str(e)}")
@@ -86,10 +87,10 @@ class WebResearch:
         documents = {}
         for doc in web_research_results:
             url = doc.get("url")
-            if url and url not in web_research_results:
+            if url and url not in documents:
                 documents[url] = doc
         
-        # Create the context string similar to the example's formatted_text
+        # Create the context string using the deduplicated and ordered results
         context_str = deduplicate_and_format_sources(
             web_research_results, max_tokens_per_source=max_tokens_per_source
         )

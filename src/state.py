@@ -104,41 +104,6 @@ class APILiteratureData(BaseModel):
 class APIsLiteratureData(BaseModel):
     apis_literature_data: List[APILiteratureData]
 
-class ReportSection(BaseModel):
-    name: str = Field(
-        description="Name for this section of the report.",
-    )
-    description: str = Field(
-        description="Brief overview of the main topics and concepts to be covered in this section.",
-    )
-    content: str = Field(
-        description="The content of the section."
-    )   
-
-# Define the structure for clustering output
-class DocumentCluster(BaseModel):
-    property: Literal[
-        'polymorphs',
-        'scheme_of_degradation_route',
-        'stability_indicators',
-        'impurities',
-        'biopharmaceutical_classification',
-        'hygroscopicity',
-        'chirality_or_specific_optical_rotation',
-        'glass_transition_temperature',
-        'degradation_temperature',
-    ] = Field(
-        ...,
-        description="The name of the property these documents belong to."
-    )
-    cluster: List[str] = Field(
-        ...,
-        description="A list of URLs relevant to the identified property."
-    )
-
-class DocumentClusters(BaseModel):
-    clusters: List[DocumentCluster] = Field(default_factory=list, description="List of document clusters")
-
 class API(BaseModel):
     API_name: str = Field(
         ...,
@@ -202,11 +167,16 @@ class ProductInformation(BaseModel):
         description= "Additional observations for the pharmaceutical product to be developed"
     )
 
-class DrugDevelopmentResearchInputState(TypedDict):
-    input_documents: List[str]                                          # List of input documents SOW, DMI, DMF, among others
 
-class DrugDevelopmentResearchOutputState(TypedDict):
-    report_docx_dir_string: str                                              # Dir string for the research report
+class PropertyReportSection(BaseModel):
+    property: Literal["polymorphs", "scheme_of_degradation_route", "stability_indicators", "impurities", "biopharmaceutical_classification", "hygroscopicity", "chirality_or_specific_optical_rotation", "glass_transition_temperature", "degradation_temperature"] = Field(
+        ...,
+        description = "The name of the specific physicochemical property of the Active Ingredient exposed in the research report"
+    )
+    research_report: str = Field(
+        ...,
+        description="A 100 words plain text research report of the given physicochemical property in a highly pharmaceutical chemist scientific, detailed and exhaustive style."
+    )
 
 class DrugDevelopmentResearchGraphState(TypedDict):
     input_documents: List[str]
