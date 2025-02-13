@@ -100,14 +100,6 @@ class APILiteratureData(BaseModel):
         ...,
         description="Complete text with references in a scientific and research article style Degradation temperature identified in the literature. It includes the url link as reference"
     )
-    rld_special_characteristics: str = Field(
-        ...,
-        description="Complete text with references in a scientific and research article style Special characteristics of the API and excipients for the RLD, such as crystalline form or particle size, based on COFA and literature. It includes the url link as reference"
-    )
-    rld_manufacturing_process_info: str = Field(
-        ...,
-        description="Complete text with references in a scientific and research article style Manufacturing process information for the RLD, including controls and recommended conditions, obtained from sources like LiteratureResearchAgent, PatentResearchAgent, and EMA API. It includes the url link as reference"
-    )
 
 class APIsLiteratureData(BaseModel):
     apis_literature_data: List[APILiteratureData]
@@ -135,8 +127,6 @@ class DocumentCluster(BaseModel):
         'chirality_or_specific_optical_rotation',
         'glass_transition_temperature',
         'degradation_temperature',
-        'rld_special_characteristics',
-        'rld_manufacturing_process_info'
     ] = Field(
         ...,
         description="The name of the property these documents belong to."

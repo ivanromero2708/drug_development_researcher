@@ -19,7 +19,7 @@ class Configuration:
     claude_35_sonnet: str = "claude-3-5-sonnet-latest"
     TAVILY_API_KEY: str = os.getenv("TAVILY_API_KEY")
     number_of_queries: int = 9
-    max_results_query: int = 9
+    max_results_query: int = 5
     max_tokens_per_source: int = 5000
     language_for_extraction: str = "english"
     language_for_report: str = "english"

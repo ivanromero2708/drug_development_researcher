@@ -16,7 +16,7 @@ class ExtractInformation:
         pass
     
     def extract_information(self, state: LiteratureResearchGraphState, config: RunnableConfig):
-        consolidated_research_report = state["consolidated_research_report"]
+        consolidated_research_report = state["context"]
         
         # Get configuration and initialize the LLM
         configurable = Configuration.from_runnable_config(config)

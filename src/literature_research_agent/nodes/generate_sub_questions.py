@@ -36,7 +36,6 @@ class GenerateSubQuestions:
         system_instructions = PROMPT_GENERATE_SUB_QUESTIONS.format(
             API=API,
             route_of_administration = route_of_administration,
-            number_of_queries = number_of_queries,
         )
         system_msg = SystemMessage(content=system_instructions)
         instruction_msg = HumanMessage(

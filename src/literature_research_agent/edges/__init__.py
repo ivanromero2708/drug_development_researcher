@@ -1,3 +1,3 @@
-from .initiate_all_research import InitiateAllResearch
+from .initiate_property_research import InitiatePropertyResearch
 
-__all__ = ["InitiateAllResearch"]
+__all__ = ["InitiatePropertyResearch"]
