@@ -26,13 +26,13 @@ class GeneratePropertyReport:
         structured_llm = llm.with_structured_output(PropertyReportSection)
         
         system_msg = SystemMessage(
-            content = SYSTEM_PROMPT_GENERATE_PROPERTY_REPORT
-        )
-        
-        human_instructions = HUMAN_PROMPT_GENERATE_PROPERTY_REPORT.format(
+            content = SYSTEM_PROMPT_GENERATE_PROPERTY_REPORT.format(
             query = query,
             property_research_context = property_research_context,
         )
+        )
+        
+        human_instructions = HUMAN_PROMPT_GENERATE_PROPERTY_REPORT
         
         human_msg = HumanMessage(
             content = human_instructions

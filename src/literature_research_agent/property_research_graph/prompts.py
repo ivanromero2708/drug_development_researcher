@@ -32,11 +32,8 @@ A JSON object that contains the next variables:
 - chirality_or_specific_optical_rotation: Information on chiral properties or specific optical rotation, including measured values, enantiomeric purity, and supporting literature references.
 - glass_transition_temperature: The glass transition temperature (Tg) including determination method (e.g., DSC), exact values or ranges, and reference URLs.
 - degradation_temperature: The temperature at which the API degrades, including experimental conditions, thresholds, kinetic data, and supporting references.
-"""
 
-HUMAN_PROMPT_GENERATE_PROPERTY_REPORT = """
-Generate a concise, fact-based Plain Text report considering these inputs:
-
+The inputs are:
 1. Query: A text query indicating the specific property to focus on, provided next:
 <query>
 {query}
@@ -46,4 +43,8 @@ Generate a concise, fact-based Plain Text report considering these inputs:
 <property_research_context>
 {property_research_context}
 </property_research_context>
+"""
+
+HUMAN_PROMPT_GENERATE_PROPERTY_REPORT = """
+Generate a concise, fact-based Plain Text 200 words report considering the given inputs. It is really important that the ALL the relevant citations are included.
 """

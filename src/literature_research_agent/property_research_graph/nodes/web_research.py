@@ -92,7 +92,7 @@ class WebResearch:
         
         # Create the context string using the deduplicated and ordered results
         context_str = deduplicate_and_format_sources(
-            web_research_results, max_tokens_per_source=max_tokens_per_source
+            web_research_results, max_tokens_per_source=max_tokens_per_source, include_raw_content=True
         )
         
         return {"property_research_context": context_str, "documents": documents}

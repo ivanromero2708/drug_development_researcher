@@ -6,6 +6,23 @@ from typing import List, Literal
 from pydantic import BaseModel, Field
 from langgraph.channels.last_value import LastValue
 
+class RLDReportSection(BaseModel):
+    rld_section: Literal[
+        "API_name_with_UNII",
+        "inactive_ingredients_with_UNII_str",
+        "type_pckg_material",
+        "rld_how_supplied",
+        "rld_physical_characteristics",
+        "rld_storage_conditions",
+        "rld_special_characteristics",        
+        ] = Field(
+        ...,
+        description = "The name of the specific rld report element of the Active Ingredient exposed in the research report"
+    )
+    research_report: str = Field(
+        ...,
+        description="A plain text research report of the given information in a highly pharmaceutical chemist scientific, detailed and exhaustive style."
+    )
 
 # Add Tavily's arguments to enhance the web search tool's capabilities
 class TavilyQuery(BaseModel):
@@ -100,6 +117,30 @@ class APILiteratureData(BaseModel):
         ...,
         description="Complete text with references in a scientific and research article style Degradation temperature identified in the literature. It includes the url link as reference"
     )
+    API_name_with_UNII: str = Field(
+        ...,
+        description = "The name of the active pharmaceutical ingredient (API) along with its Unique Ingredient Identifier (UNII). For example, “Acetazolamide (UNII: O3FX965V0I)”. This helps clearly identify the exact chemical substance used in the reference listed drug."
+    )
+    inactive_ingredients_with_UNII_str: str = Field(
+        ...,
+        description = "A list or description of the inactive ingredients (excipients) in the RLD, each accompanied by its UNII (or other relevant identifier). For example, lactose monohydrate, starch, gelatin, etc. This section focuses on the excipients’ identity and regulatory references."
+    )
+    type_pckg_material: str = Field(
+        ...,
+        description = "The packaging material or container system used for the RLD, such as amber glass bottles, plastic bottles, blister packs, and so forth. This indicates how the product is presented commercially and what material is used to store or protect it."
+    )
+    rld_how_supplied: str = Field(
+        ...,
+        description = "The product’s commercial presentations and packaging details (e.g., number of tablets per bottle, NDC codes, package inserts). It often includes official references for how the product is supplied in the market."
+    )
+    rld_physical_characteristics: str = Field(
+        ...,
+        description = "Definition: The color, size, shape, imprint codes, scoring, or other visual/physical traits of the finished dosage form (e.g., “white, round, 9 mm, T53 engraved”)."
+    )
+    rld_special_characteristics: str = Field(
+        ...,
+        description = "Any special considerations or distinctive aspects of the RLD—such as the crystalline form used, particle size, unusual manufacturing steps, or advanced formulation technologies. Often highlights unique attributes of the API/excipients."
+    )    
 
 class APIsLiteratureData(BaseModel):
     apis_literature_data: List[APILiteratureData]
@@ -108,6 +149,127 @@ class API(BaseModel):
     API_name: str = Field(
         ...,
         description="The name of the pharmaceutical active ingredient."
+    )
+    desired_dosage_form: Literal[
+        "AEROSOL, FOAM",
+        "AEROSOL, METERED",
+        "AEROSOL",
+        "BAR, CHEWABLE",
+        "CAPSULE, COATED PELLETS",
+        "CAPSULE, DELAYED REL PELLETS, TABLET",
+        "CAPSULE, DELAYED REL PELLETS",
+        "CAPSULE, DELAYED RELEASE",
+        "CAPSULE, EXTENDED RELEASE",
+        "CAPSULE, PELLET",
+        "CAPSULE, PELLETS",
+        "CAPSULE, TABLET, CAPSULE, DELAYED REL PELLETS",
+        "CAPSULE, TABLET, CAPSULE, DELAYED RELEASE",
+        "CAPSULE, TABLET, TABLET",
+        "CAPSULE, TABLET",
+        "CAPSULE",
+        "CLOTH",
+        "CONCENTRATE",
+        "CREAM, AUGMENTED",
+        "CREAM, INSERT",
+        "CREAM, SUPPOSITORY",
+        "CREAM, TABLET",
+        "CREAM",
+        "DISC",
+        "DRESSING",
+        "DRUG-ELUTING CONTACT LENS",
+        "ELIXIR",
+        "EMULSION",
+        "ENEMA",
+        "FIBER, EXTENDED RELEASE",
+        "FILM, EXTENDED RELEASE",
+        "FILM",
+        "FOAM",
+        "FOR SOLUTION, TABLET, DELAYED RELEASE",
+        "FOR SOLUTION, TABLET, FOR SOLUTION",
+        "FOR SOLUTION",
+        "FOR SUSPENSION, DELAYED RELEASE",
+        "FOR SUSPENSION, EXTENDED RELEASE",
+        "FOR SUSPENSION, TABLET",
+        "FOR SUSPENSION",
+        "GAS",
+        "GEL, AUGMENTED",
+        "GEL, METERED",
+        "GEL",
+        "GRANULE, DELAYED RELEASE",
+        "GRANULE, EFFERVESCENT",
+        "GRANULE",
+        "GRANULES, EXTENDED RELEASE",
+        "GRANULES",
+        "GUM, CHEWING",
+        "IMPLANT",
+        "INHALANT",
+        "INJECTABLE, LIPID COMPLEX",
+        "INJECTABLE, LIPOSOMAL",
+        "INJECTABLE, SUSPENSION",
+        "INJECTABLE, TABLET",
+        "INJECTABLE",
+        "INSERT, EXTENDED RELEASE",
+        "INSERT",
+        "INTRAUTERINE DEVICE",
+        "JELLY",
+        "LIQUID",
+        "LOTION, AUGMENTED",
+        "LOTION/SHAMPOO",
+        "LOTION",
+        "OIL/DROPS",
+        "OIL",
+        "OINTMENT, AUGMENTED",
+        "OINTMENT",
+        "PASTE",
+        "PASTILLE",
+        "PATCH",
+        "PELLET",
+        "PELLETS",
+        "POWDER, EXTENDED RELEASE",
+        "POWDER, METERED",
+        "POWDER",
+        "RING",
+        "SHAMPOO",
+        "SOAP",
+        "SOLUTION FOR SLUSH",
+        "SOLUTION, ELIXIR",
+        "SOLUTION, EXTENDED RELEASE",
+        "SOLUTION, GEL FORMING/DROPS",
+        "SOLUTION, METERED",
+        "SOLUTION/DROPS",
+        "SOLUTION",
+        "SPONGE",
+        "SPRAY, METERED",
+        "SPRAY",
+        "SUPPOSITORY",
+        "SUSPENSION, EXTENDED RELEASE",
+        "SUSPENSION, LIPOSOMAL",
+        "SUSPENSION/DROPS",
+        "SUSPENSION",
+        "SWAB",
+        "SYRUP",
+        "SYSTEM, EXTENDED RELEASE",
+        "SYSTEM",
+        "TABLET, CHEWABLE, TABLET, CAPSULE",
+        "TABLET, CHEWABLE, TABLET",
+        "TABLET, CHEWABLE",
+        "TABLET, COATED PARTICLES",
+        "TABLET, DELAYED RELEASE",
+        "TABLET, DISPERSIBLE",
+        "TABLET, EFFERVESCENT",
+        "TABLET, EXTENDED RELEASE, CHEWABLE",
+        "TABLET, EXTENDED RELEASE",
+        "TABLET, FOR SUSPENSION",
+        "TABLET, ORALLY DISINTEGRATING, DELAYED RELEASE",
+        "TABLET, ORALLY DISINTEGRATING, EXTENDED RELEASE",
+        "TABLET, ORALLY DISINTEGRATING",
+        "TABLET",
+        "TAMPON",
+        "TAPE",
+        "TROCHE/LOZENGE"
+    ] = Field(
+        ...,
+        description="The desired dosage form for that particular API in the product."
     )
 
 # Define Input product information
