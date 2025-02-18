@@ -2,7 +2,7 @@ from datetime import datetime
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from langchain_openai import ChatOpenAI
 from langchain_core.runnables import RunnableConfig
-from src.literature_research_agent.rld_research_graph.state import (
+from src.rld_research_graph.state import (
     GenerateRLDContentGraphState,
     DrugLabelDoc
 )
@@ -11,7 +11,7 @@ from src.state import (
 )
 
 from src.configuration import Configuration
-from src.literature_research_agent.rld_research_graph.prompts import (
+from src.rld_research_graph.prompts import (
     SYSTEM_PROMPT_GENERATE_RLD_CONTENT,
     HUMAN_PROMPT_GENERATE_RLD_CONTENT
 )
@@ -33,15 +33,15 @@ class GenerateRLDContent:
     def generate_rld_content(self, state: GenerateRLDContentGraphState, config: RunnableConfig):
         
         # 1) Extract main data from state
-        API_name = state["API"].API_name
-        dosage_form = state["product_information_child"].product_dosage_form
-        route_of_administration = state["product_information_child"].route_of_administration
+        API_name = state["RLD"].api_name
+        dosage_form = state["RLD"].rld_dosage_form
+        route_of_administration = "ORAL"
         drug_label_doc = state["drug_label_doc"]
         rld_report_section = state["rld_report_section"]
         
         # 2) Get configuration + LLM
         configurable = Configuration.from_runnable_config(config)
-        llm = ChatOpenAI(model=configurable.gpt4omini, temperature=0)
+        llm = ChatOpenAI(model=configurable.o3mini, reasoning_effort="medium")
         
         # 3) Retrieve examples + mapping
         HUMAN_MESSAGE_EXAMPLE1_RLD = configurable.HUMAN_MESSAGE_EXAMPLE1_RLD
@@ -54,7 +54,9 @@ class GenerateRLDContent:
         structured_llm = llm.with_structured_output(RLDReportSection)
         
         system_msg = SystemMessage(
-            content=SYSTEM_PROMPT_GENERATE_RLD_CONTENT
+            content=SYSTEM_PROMPT_GENERATE_RLD_CONTENT.format(
+                rld_section = rld_report_section,
+            )
         )
         
         # 5) Prepare examples for the chosen rld_report_section
@@ -82,7 +84,7 @@ class GenerateRLDContent:
                 API_name=API_name,
                 dosage_form=dosage_form,
                 route_of_administration=route_of_administration,
-                drug_label_doc_info=doc_content  # <-- now uses the actual doc content
+                drug_label_doc_info=doc_content,  # <-- now uses the actual doc content
             )
         )
         

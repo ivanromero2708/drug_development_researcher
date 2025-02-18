@@ -82,7 +82,7 @@ class ExtractInputInformation:
 
         # Invoke the language model to extract the structured product information.
         product_info = structured_llm.invoke(messages)
-        return {"product_information": product_info, "apis": product_info.APIs}
+        return {"product_information": product_info}
 
     def run(self, state: DrugDevelopmentResearchGraphState, config: RunnableConfig) -> Dict[str, Any]:
         return self.extract_input_information(state, config)

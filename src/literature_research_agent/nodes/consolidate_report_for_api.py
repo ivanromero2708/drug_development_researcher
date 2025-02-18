@@ -1,4 +1,4 @@
-from src.literature_research_agent.state import LiteratureResearchGraphState, APILiteratureData
+from src.literature_research_agent.state import LiteratureResearchGraphState, APILiteratureResearchData
 from langchain_core.runnables import RunnableConfig
 from src.configuration import Configuration
 
@@ -8,12 +8,7 @@ class ConsolidateReportAPI:
     
     def consolidate_report_for_api(self, state: LiteratureResearchGraphState, config: RunnableConfig):
         api_external_APIkey_data = state["api_external_APIkey_data"]
-        
-        rld_reports = {}
-        
-        for section in state["rld_research_report"]:
-            rld_reports[section.rld_section] = section.research_report
-        
+       
         # Convertir la lista de PropertyReportSection en un diccionario que mapea la propiedad a su research_report
         property_reports = {}
         for section in state["api_research_property_report"]:
@@ -21,7 +16,7 @@ class ConsolidateReportAPI:
         
         API = state["API"].API_name
         
-        api_literature_data = APILiteratureData(
+        api_literature_data = APILiteratureResearchData(
             api_name=API,
             cas_number=api_external_APIkey_data.cas_number,
             pka=api_external_APIkey_data.pka,
@@ -45,15 +40,9 @@ class ConsolidateReportAPI:
             degradation_temperature=property_reports.get("degradation_temperature", ""),
             # Asegúrate de asignar un valor al campo "description"
             description=api_external_APIkey_data.description,
-            API_name_with_UNII = rld_reports.get("API_name_with_UNII", ""),
-            inactive_ingredients_with_UNII_str = rld_reports.get("inactive_ingredients_with_UNII_str", ""),
-            type_pckg_material = rld_reports.get("type_pckg_material", ""),
-            rld_how_supplied = rld_reports.get("rld_how_supplied", ""),
-            rld_physical_characteristics = rld_reports.get("rld_physical_characteristics", ""),
-            rld_special_characteristics = rld_reports.get("rld_special_characteristics", ""),            
         )
         
-        return {"api_literature_data": [api_literature_data]}
+        return {"literature_research_api_data": [api_literature_data]}
     
     def run(self, state: LiteratureResearchGraphState, config: RunnableConfig):
         return self.consolidate_report_for_api(state, config)

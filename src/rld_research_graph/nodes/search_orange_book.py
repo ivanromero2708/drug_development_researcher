@@ -6,7 +6,7 @@ import io
 import csv
 from langchain_core.runnables import RunnableConfig
 from src.configuration import Configuration
-from src.literature_research_agent.rld_research_graph.state import RLDResearchGraphState
+from src.rld_research_graph.state import RLDResearchGraphState
 
 class SearchOrangeBook:
     def __init__(self, config: RunnableConfig):

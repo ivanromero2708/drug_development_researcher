@@ -16,6 +16,8 @@ class TestDrugDevelopmentResearcherGraph(unittest.IsolatedAsyncioTestCase):
         # Note: DrugDevelopmentResearchGraphState is defined as a TypedDict so we use a plain dictionary.
         self.test_state: DrugDevelopmentResearchGraphState = {
             "input_documents": [self.input_document_path],
+            "apis_text_information": "Dronabinol in Soft gelatin Capsules; Acetazolamide in tablets",
+            "is_rld_combination": "N",
             "apis": [],
             #"product_information": [],
             "api_literature_data": [],

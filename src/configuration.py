@@ -21,6 +21,20 @@ MAPPING_DRUG_LABEL_SECTION = {
 
 HUMAN_MESSAGE_EXAMPLE1_RLD = {
     "API_name_with_UNII": """
+You must generate the “RLD Section” text for the user’s specified section. The user’s data includes:
+- API_name: <API_name>Dronabinol</API_name>
+- dosage_form: <dosage_form>CAPSULE</dosage_form>
+- route_of_administration: <route_of_administration>ORAL</route_of_administration>
+
+**Instructions**:
+1. Return a JSON with two fields: "rld_section" matching the requested name, and "research_report" containing only the final text for that snippet. 
+2. If bullet points or references like “[25]” appear, preserve them. 
+3. If no snippet is provided, say "No data available." 
+4. Do not add extra disclaimers or mention chain-of-thought.
+5. Keep it concise, formal, and scientifically oriented, exactly for the requested section.
+
+Below is the **relevant snippet** from the drug label or context for this RLD section:
+<drug_label_doc_info>
 MARINOL 
 dronabinol capsule
 Product Information
@@ -107,8 +121,23 @@ Labeler - ThePharmaNetwork, LLC (939435280)
 Establishment
 Name	Address	ID/FEI	Business Operations
 Patheon Softgels Inc		002193829	MANUFACTURE(53097-568, 53097-569, 53097-570)
+</drug_label_doc_info>
     """,
     "inactive_ingredients_with_UNII_str": """
+You must generate the “RLD Section” text for the user’s specified section. The user’s data includes:
+- API_name: <API_name>Dronabinol</API_name>
+- dosage_form: <dosage_form>CAPSULE</dosage_form>
+- route_of_administration: <route_of_administration>ORAL</route_of_administration>
+
+**Instructions**:
+1. Return a JSON with two fields: "rld_section" matching the requested name, and "research_report" containing only the final text for that snippet. 
+2. If bullet points or references like “[25]” appear, preserve them. 
+3. If no snippet is provided, say "No data available." 
+4. Do not add extra disclaimers or mention chain-of-thought.
+5. Keep it concise, formal, and scientifically oriented, exactly for the requested section.
+
+Below is the **relevant snippet** from the drug label or context for this RLD section:
+<drug_label_doc_info>
 MARINOL 
 dronabinol capsule
 Product Information
@@ -195,14 +224,44 @@ Labeler - ThePharmaNetwork, LLC (939435280)
 Establishment
 Name	Address	ID/FEI	Business Operations
 Patheon Softgels Inc		002193829	MANUFACTURE(53097-568, 53097-569, 53097-570)
+</drug_label_doc_info>
     """,
     "strengths": """
+You must generate the “RLD Section” text for the user’s specified section. The user’s data includes:
+- API_name: <API_name>Dronabinol</API_name>
+- dosage_form: <dosage_form>CAPSULE</dosage_form>
+- route_of_administration: <route_of_administration>ORAL</route_of_administration>
+
+**Instructions**:
+1. Return a JSON with two fields: "rld_section" matching the requested name, and "research_report" containing only the final text for that snippet. 
+2. If bullet points or references like “[25]” appear, preserve them. 
+3. If no snippet is provided, say "No data available." 
+4. Do not add extra disclaimers or mention chain-of-thought.
+5. Keep it concise, formal, and scientifically oriented, exactly for the requested section.
+
+Below is the **relevant snippet** from the drug label or context for this RLD section:
+<drug_label_doc_info>
 MARINOL is supplied as round, soft gelatin capsules for oral use as follows:
 • 2.5 mg white capsules (Identified UM)
 • 5 mg dark brown capsules (Identified UM)
 • 10 mg orange capsules (Identified UM)
+</drug_label_doc_info>
     """,
     "type_pckg_material": """
+You must generate the “RLD Section” text for the user’s specified section. The user’s data includes:
+- API_name: <API_name>Dronabinol</API_name>
+- dosage_form: <dosage_form>CAPSULE</dosage_form>
+- route_of_administration: <route_of_administration>ORAL</route_of_administration>
+
+**Instructions**:
+1. Return a JSON with two fields: "rld_section" matching the requested name, and "research_report" containing only the final text for that snippet. 
+2. If bullet points or references like “[25]” appear, preserve them. 
+3. If no snippet is provided, say "No data available." 
+4. Do not add extra disclaimers or mention chain-of-thought.
+5. Keep it concise, formal, and scientifically oriented, exactly for the requested section.
+
+Below is the **relevant snippet** from the drug label or context for this RLD section:
+<drug_label_doc_info>
 NDC 53097-568-60
 Bottle of 60 Capsules
 Rx Only
@@ -311,8 +370,23 @@ Labeler - ThePharmaNetwork, LLC (939435280)
 Establishment
 Name	Address	ID/FEI	Business Operations
 Patheon Softgels Inc		002193829	MANUFACTURE(53097-568, 53097-569, 53097-570)    
+</drug_label_doc_info>
     """,
     "rld_how_supplied": """
+You must generate the “RLD Section” text for the user’s specified section. The user’s data includes:
+- API_name: <API_name>Dronabinol</API_name>
+- dosage_form: <dosage_form>CAPSULE</dosage_form>
+- route_of_administration: <route_of_administration>ORAL</route_of_administration>
+
+**Instructions**:
+1. Return a JSON with two fields: "rld_section" matching the requested name, and "research_report" containing only the final text for that snippet. 
+2. If bullet points or references like “[25]” appear, preserve them. 
+3. If no snippet is provided, say "No data available." 
+4. Do not add extra disclaimers or mention chain-of-thought.
+5. Keep it concise, formal, and scientifically oriented, exactly for the requested section.
+
+Below is the **relevant snippet** from the drug label or context for this RLD section:
+<drug_label_doc_info>
 MARINOL® (dronabinol capsules, USP)
 
 2.5 mg white capsules (Identified UM).
@@ -436,9 +510,24 @@ NDA	NDA018651	05/10/2017
 Labeler - ThePharmaNetwork, LLC (939435280)
 Establishment
 Name	Address	ID/FEI	Business Operations
-Patheon Softgels Inc		002193829	MANUFACTURE(53097-568, 53097-569, 53097-570)    
+Patheon Softgels Inc		002193829	MANUFACTURE(53097-568, 53097-569, 53097-570)   
+</drug_label_doc_info> 
     """,
     "rld_storage_conditions": """
+You must generate the “RLD Section” text for the user’s specified section. The user’s data includes:
+- API_name: <API_name>Dronabinol</API_name>
+- dosage_form: <dosage_form>CAPSULE</dosage_form>
+- route_of_administration: <route_of_administration>ORAL</route_of_administration>
+
+**Instructions**:
+1. Return a JSON with two fields: "rld_section" matching the requested name, and "research_report" containing only the final text for that snippet. 
+2. If bullet points or references like “[25]” appear, preserve them. 
+3. If no snippet is provided, say "No data available." 
+4. Do not add extra disclaimers or mention chain-of-thought.
+5. Keep it concise, formal, and scientifically oriented, exactly for the requested section.
+
+Below is the **relevant snippet** from the drug label or context for this RLD section:
+<drug_label_doc_info>
 MARINOL® (dronabinol capsules, USP)
 
 2.5 mg white capsules (Identified UM).
@@ -453,8 +542,23 @@ NDC 53097-570-60 (Bottle of 60 capsules).
 Storage Conditions
 
 MARINOL capsules should be packaged in a well-closed container and stored in a cool environment between 8° and 15°C (46° and 59°F) and alternatively could be stored in a refrigerator. Protect from freezing       
+</drug_label_doc_info>
     """,
     "rld_special_characteristics": """
+You must generate the “RLD Section” text for the user’s specified section. The user’s data includes:
+- API_name: <API_name>Dronabinol</API_name>
+- dosage_form: <dosage_form>CAPSULE</dosage_form>
+- route_of_administration: <route_of_administration>ORAL</route_of_administration>
+
+**Instructions**:
+1. Return a JSON with two fields: "rld_section" matching the requested name, and "research_report" containing only the final text for that snippet. 
+2. If bullet points or references like “[25]” appear, preserve them. 
+3. If no snippet is provided, say "No data available." 
+4. Do not add extra disclaimers or mention chain-of-thought.
+5. Keep it concise, formal, and scientifically oriented, exactly for the requested section.
+
+Below is the **relevant snippet** from the drug label or context for this RLD section:
+<drug_label_doc_info>
 Dronabinol is a cannabinoid designated chemically as (6aR,10aR)-6a,7,8,10a-Tetrahydro-6,6,9-trimethyl-3-pentyl-6H-dibenzo[b,d]-pyran-1-ol. Dronabinol has the following empirical and structural formulas:
 
 
@@ -469,6 +573,7 @@ Dronabinol, the active ingredient in MARINOL (dronabinol capsules, USP), is synt
 Dronabinol is a light yellow resinous oil that is sticky at room temperature and hardens upon refrigeration. Dronabinol is insoluble in water and is formulated in sesame oil. It has a pKa of 10.6 and an octanol-water partition coefficient: 6,000:1 at pH 7.
 
 Each MARINOL capsule strength is formulated with the following inactive ingredients: 2.5 mg capsule contains gelatin, glycerin, sesame oil, and titanium dioxide; 5 mg capsule contains iron oxide red and iron oxide black, gelatin, glycerin, sesame oil, and titanium dioxide; 10 mg capsule contains iron oxide red and iron oxide yellow, gelatin, glycerin, sesame oil, and titanium dioxide.    
+</drug_label_doc_info>
     """,
 }
 
@@ -542,6 +647,20 @@ Dronabinol is a light yellow resinous oil that is sticky at room temperature and
 
 HUMAN_MESSAGE_EXAMPLE2_RLD = {
     "API_name_with_UNII": """
+You must generate the “RLD Section” text for the user’s specified section. The user’s data includes:
+- API_name: <API_name>ACETAZOLAMIDE</API_name>
+- dosage_form: <dosage_form>TABLET</dosage_form>
+- route_of_administration: <route_of_administration>ORAL</route_of_administration>
+
+**Instructions**:
+1. Return a JSON with two fields: "rld_section" matching the requested name, and "research_report" containing only the final text for that snippet. 
+2. If bullet points or references like “[25]” appear, preserve them. 
+3. If no snippet is provided, say "No data available." 
+4. Do not add extra disclaimers or mention chain-of-thought.
+5. Keep it concise, formal, and scientifically oriented, exactly for the requested section.
+
+Below is the **relevant snippet** from the drug label or context for this RLD section:
+<drug_label_doc_info>
 NDC 51672-4023-1
 100 Tablets
 
@@ -621,8 +740,23 @@ Labeler - Taro Pharmaceuticals U.S.A., Inc. (145186370)
 Establishment
 Name	Address	ID/FEI	Business Operations
 Taro Pharmaceutical Industries Ltd.		600072078	MANUFACTURE(51672-4022, 51672-4023)
+</drug_label_doc_info>
     """,
     "inactive_ingredients_with_UNII_str": """
+You must generate the “RLD Section” text for the user’s specified section. The user’s data includes:
+- API_name: <API_name>ACETAZOLAMIDE</API_name>
+- dosage_form: <dosage_form>TABLET</dosage_form>
+- route_of_administration: <route_of_administration>ORAL</route_of_administration>
+
+**Instructions**:
+1. Return a JSON with two fields: "rld_section" matching the requested name, and "research_report" containing only the final text for that snippet. 
+2. If bullet points or references like “[25]” appear, preserve them. 
+3. If no snippet is provided, say "No data available." 
+4. Do not add extra disclaimers or mention chain-of-thought.
+5. Keep it concise, formal, and scientifically oriented, exactly for the requested section.
+
+Below is the **relevant snippet** from the drug label or context for this RLD section:
+<drug_label_doc_info>
 NDC 51672-4023-1
 100 Tablets
 
@@ -702,8 +836,23 @@ Labeler - Taro Pharmaceuticals U.S.A., Inc. (145186370)
 Establishment
 Name	Address	ID/FEI	Business Operations
 Taro Pharmaceutical Industries Ltd.		600072078	MANUFACTURE(51672-4022, 51672-4023)
+</drug_label_doc_info>
     """,
     "type_pckg_material": """
+You must generate the “RLD Section” text for the user’s specified section. The user’s data includes:
+- API_name: <API_name>ACETAZOLAMIDE</API_name>
+- dosage_form: <dosage_form>TABLET</dosage_form>
+- route_of_administration: <route_of_administration>ORAL</route_of_administration>
+
+**Instructions**:
+1. Return a JSON with two fields: "rld_section" matching the requested name, and "research_report" containing only the final text for that snippet. 
+2. If bullet points or references like “[25]” appear, preserve them. 
+3. If no snippet is provided, say "No data available." 
+4. Do not add extra disclaimers or mention chain-of-thought.
+5. Keep it concise, formal, and scientifically oriented, exactly for the requested section.
+
+Below is the **relevant snippet** from the drug label or context for this RLD section:
+<drug_label_doc_info>
 NDC 51672-4023-1
 100 Tablets
 
@@ -783,8 +932,23 @@ Labeler - Taro Pharmaceuticals U.S.A., Inc. (145186370)
 Establishment
 Name	Address	ID/FEI	Business Operations
 Taro Pharmaceutical Industries Ltd.		600072078	MANUFACTURE(51672-4022, 51672-4023)
+</drug_label_doc_info>
     """,
     "rld_how_supplied": """
+You must generate the “RLD Section” text for the user’s specified section. The user’s data includes:
+- API_name: <API_name>ACETAZOLAMIDE</API_name>
+- dosage_form: <dosage_form>TABLET</dosage_form>
+- route_of_administration: <route_of_administration>ORAL</route_of_administration>
+
+**Instructions**:
+1. Return a JSON with two fields: "rld_section" matching the requested name, and "research_report" containing only the final text for that snippet. 
+2. If bullet points or references like “[25]” appear, preserve them. 
+3. If no snippet is provided, say "No data available." 
+4. Do not add extra disclaimers or mention chain-of-thought.
+5. Keep it concise, formal, and scientifically oriented, exactly for the requested section.
+
+Below is the **relevant snippet** from the drug label or context for this RLD section:
+<drug_label_doc_info>
 Acetazolamide Tablets USP are supplied as follows:
 125 mg - White, round, scored in half, on one side, "T52" engraved on the other side.
 NDC 51672-4022-1 - Bottle of 100
@@ -793,8 +957,23 @@ NDC 51672-4022-1 - Bottle of 100
 NDC 51672-4023-1 - Bottle of 100
 
 Store at 20° to 25°C (68° to 77°F) [see USP Controlled Room Temperature].
+</drug_label_doc_info>
     """,
     "rld_physical_characteristics": """
+You must generate the “RLD Section” text for the user’s specified section. The user’s data includes:
+- API_name: <API_name>ACETAZOLAMIDE</API_name>
+- dosage_form: <dosage_form>TABLET</dosage_form>
+- route_of_administration: <route_of_administration>ORAL</route_of_administration>
+
+**Instructions**:
+1. Return a JSON with two fields: "rld_section" matching the requested name, and "research_report" containing only the final text for that snippet. 
+2. If bullet points or references like “[25]” appear, preserve them. 
+3. If no snippet is provided, say "No data available." 
+4. Do not add extra disclaimers or mention chain-of-thought.
+5. Keep it concise, formal, and scientifically oriented, exactly for the requested section.
+
+Below is the **relevant snippet** from the drug label or context for this RLD section:
+<drug_label_doc_info>
 NDC 51672-4023-1
 100 Tablets
 
@@ -874,10 +1053,26 @@ Labeler - Taro Pharmaceuticals U.S.A., Inc. (145186370)
 Establishment
 Name	Address	ID/FEI	Business Operations
 Taro Pharmaceutical Industries Ltd.		600072078	MANUFACTURE(51672-4022, 51672-4023)
+</drug_label_doc_info>
 
     """,
     "rld_storage_conditions": """
-Acetazolamide Tablets USP are supplied as follows:
+You must generate the “RLD Section” text for the user’s specified section. The user’s data includes:
+- API_name: <API_name>ACETAZOLAMIDE</API_name>
+- dosage_form: <dosage_form>TABLET</dosage_form>
+- route_of_administration: <route_of_administration>ORAL</route_of_administration>
+
+**Instructions**:
+1. Return a JSON with two fields: "rld_section" matching the requested name, and "research_report" containing only the final text for that snippet. 
+2. If bullet points or references like “[25]” appear, preserve them. 
+3. If no snippet is provided, say "No data available." 
+4. Do not add extra disclaimers or mention chain-of-thought.
+5. Keep it concise, formal, and scientifically oriented, exactly for the requested section.
+
+Below is the **relevant snippet** from the drug label or context for this RLD section:
+<drug_label_doc_info>
+Acetazolamide Tablets USP are supplie
+d as follows:
 125 mg - White, round, scored in half, on one side, "T52" engraved on the other side.
 NDC 51672-4022-1 - Bottle of 100
 
@@ -885,8 +1080,23 @@ NDC 51672-4022-1 - Bottle of 100
 NDC 51672-4023-1 - Bottle of 100
 
 Store at 20° to 25°C (68° to 77°F) [see USP Controlled Room Temperature].
+</drug_label_doc_info>
     """,
     "rld_special_characteristics": """
+You must generate the “RLD Section” text for the user’s specified section. The user’s data includes:
+- API_name: <API_name>ACETAZOLAMIDE</API_name>
+- dosage_form: <dosage_form>TABLET</dosage_form>
+- route_of_administration: <route_of_administration>ORAL</route_of_administration>
+
+**Instructions**:
+1. Return a JSON with two fields: "rld_section" matching the requested name, and "research_report" containing only the final text for that snippet. 
+2. If bullet points or references like “[25]” appear, preserve them. 
+3. If no snippet is provided, say "No data available." 
+4. Do not add extra disclaimers or mention chain-of-thought.
+5. Keep it concise, formal, and scientifically oriented, exactly for the requested section.
+
+Below is the **relevant snippet** from the drug label or context for this RLD section:
+<drug_label_doc_info>
 Acetazolamide, an inhibitor of the enzyme carbonic anhydrase, is a white to faintly yellowish white crystalline, odorless powder, weakly acidic, very slightly soluble in water and slightly soluble in alcohol. The chemical name for acetazolamide is N-(5-Sulfamoyl-1,3,4-thiadiazol-2-yl)-acetamide and has the following chemical structure:
 
 Chemical Structure
@@ -896,6 +1106,7 @@ Molecular Weight: 222.25
 Molecular Formula: C4H6N4O3S2
 
 Acetazolamide is available as oral tablets containing 125 mg and 250 mg of acetazolamide, respectively, and the following inactive ingredients: corn starch, gelatin, glycerin, lactose monohydrate, magnesium stearate, purified water, sodium starch glycolate and talc.
+</drug_label_doc_info>
     """
 }
 
@@ -948,8 +1159,8 @@ class Configuration:
     TAVILY_API_KEY: str = os.getenv("TAVILY_API_KEY")
     local_orange_book_zip_path: str = r"C:\Users\Ivan\OneDrive - Grupo Procaps\Portafolio NTF\16 - I&D 4.0\2. Investigación de Literatura - Degradación de APIs\1.2 MVP\drug development researcher\databases\orange_book_database.zip"
     number_of_queries: int = 9
-    max_results_query: int = 5
-    max_tokens_per_source: int = 5000
+    max_results_query: int = 3
+    max_tokens_per_source: int = 4000
     language_for_extraction: str = "english"
     language_for_report: str = "english"
     # Use default_factory for mutable dict fields

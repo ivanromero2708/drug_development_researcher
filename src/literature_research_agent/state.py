@@ -1,7 +1,7 @@
 from langgraph.graph import add_messages
 from langchain_core.messages import AnyMessage
 from typing import TypedDict, List, Annotated, Dict, Union, Optional
-from src.state import ProductInformation, API, TavilyQuery, APILiteratureData, PropertyReportSection, RLDReportSection
+from src.state import ProductInformation, API, TavilyQuery, APILiteratureResearchData, APILiteratureData, PropertyReportSection, RLDReportSection
 from pydantic import BaseModel, Field
 import operator
 
@@ -49,6 +49,7 @@ class LiteratureResearchGraphState(TypedDict):
     product_information_child: ProductInformation
     api_external_APIkey_data: APIExternalData
     api_research_property_report: Annotated[List[PropertyReportSection], operator.add]
-    rld_research_report: Annotated[List[RLDReportSection], operator.add]
-    search_queries: List[TavilyQuery] 
-    api_literature_data: APILiteratureData
+    search_queries: List[TavilyQuery]
+    
+    literature_research_api_data: APILiteratureResearchData
+

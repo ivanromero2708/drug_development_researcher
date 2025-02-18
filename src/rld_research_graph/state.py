@@ -1,7 +1,7 @@
 from typing import TypedDict, List, Annotated, Dict, Union, Optional, Literal
 from pydantic import BaseModel, Field
 import operator
-from src.state import RLDReportSection, API, ProductInformation
+from src.state import RLDReportSection, API, ProductInformation, RLD, RLDResearchData
 
 
 class InactiveIngredientwithUNII(BaseModel):
@@ -31,28 +31,27 @@ class DrugLabelDoc(BaseModel):
     product_info_str: str
 
 class RLDResearchGraphState(TypedDict):
-    API: API
-    product_information_child: ProductInformation
+    RLD: RLD
     
     drug_label_doc: DrugLabelDoc
-    rld_research_report: Annotated[List[RLDReportSection], operator.add]    
+    rld_research_report: Annotated[List[RLDReportSection], operator.add]
+    
+    rld_research_data: Annotated[List[RLDResearchData], operator.add]
     
     brand_name: str
 #    pckg_lagel_img: str
     manufacturer: str
     #inactive_ingredients_with_UNII: List[InactiveIngredientwithUNII]
 
-
 class RLDResearchOutputState(TypedDict):
-    rld_research_report: Annotated[List[RLDReportSection], operator.add]    
+    rld_research_report: Annotated[List[RLDReportSection], operator.add] 
+    rld_research_data: Annotated[List[RLDResearchData], operator.add]   
     brand_name: str
 #    pckg_lagel_img: str
     manufacturer: str
- 
 
 class GenerateRLDContentGraphState(TypedDict):
-    API: API
-    product_information_child: ProductInformation
+    RLD: RLD
     drug_label_doc: DrugLabelDoc
     rld_report_section: str
     rld_section_research_report: Annotated[List[RLDReportSection], operator.add]
