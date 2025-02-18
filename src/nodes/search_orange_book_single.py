@@ -98,16 +98,16 @@ class SearchOrangeBookSingle:
         df_rld = df[df['RLD'].str.strip().str.upper() == "YES"]
         if not df_rld.empty:
             row = df_rld.iloc[0]
-            return row.get("Trade_Name", ""), row.get("Applicant_Full_Name", ""), row.get("DosageForm", "")
+            return row.get("Trade_Name", ""), row.get("Applicant_Full_Name", ""), row.get("DosageForm", ""), row.get("Route", "")
 
         # Fallback to RS
         df_rs = df[df['RS'].str.strip().str.upper() == "YES"]
         if not df_rs.empty:
             row = df_rs.iloc[0]
-            return row.get("Trade_Name", ""), row.get("Applicant_Full_Name", ""), row.get("DosageForm", "")
+            return row.get("Trade_Name", ""), row.get("Applicant_Full_Name", ""), row.get("DosageForm", ""), row.get("Route", "")
 
         # If none found
-        return "", "", ""
+        return "", "", "", ""
 
     async def run(self, state: DrugDevelopmentResearchGraphState, config: RunnableConfig):
         """
@@ -127,20 +127,18 @@ class SearchOrangeBookSingle:
             # Prepare a list for final RLD objects
             rld_list: List[RLD] = []
 
-            # Retrieve route from product_information
-            route_of_admin = "ORAL"
-
             # For each API
             apis = state["apis"]  # list of API objects
             for api_obj in apis:
                 api_name = api_obj.API_name
                 dosage_form = api_obj.desired_dosage_form  # literal field
-
+                route_of_admin = api_obj.route_of_administration
+                
                 # Filter
                 df_filtered = self.filter_for_single_api(df_products, api_name, dosage_form, route_of_admin)
 
                 # Grab brand/manufacturer
-                brand, manufacturer, rld_dosage_form = self.find_first_rld_or_rs(df_filtered)
+                brand, manufacturer, rld_dosage_form, route_of_administration = self.find_first_rld_or_rs(df_filtered)
 
                 # Build an RLD object
                 rld_item = RLD(
@@ -148,6 +146,7 @@ class SearchOrangeBookSingle:
                     brand_name=brand.strip(),
                     manufacturer=manufacturer.strip(),
                     rld_dosage_form=rld_dosage_form.strip(),
+                    route_of_administration = route_of_administration.strip(),
                 )
                 rld_list.append(rld_item)
 

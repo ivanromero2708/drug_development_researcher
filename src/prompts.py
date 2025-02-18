@@ -23,9 +23,9 @@ Text:
 """
 
 PROMPT_EXTRACT_API_INFORMATION = """
-You are an expert pharmaceutical researcher. Below is a detailed text containing exact information about active pharmaceutical ingredients, and their desired dosage forms for a pharmaceutical product. Your task is to extract the following information and return it as a JSON object with exactly these keys (if a field cannot be determined, return an empty string):
+You are an expert pharmaceutical researcher. Below is a detailed text containing exact information about active pharmaceutical ingredients, their desired dosage forms and the desired routes of administration for a pharmaceutical product. Your task is to extract the following information and return it as a JSON object with exactly these keys (if a field cannot be determined, return an empty string):
 
-"APIs": A list of active pharmaceutical ingredients. Each element must be an object with the key "API_name" (e.g., [{{"API_name": "Acetazolamide", "desired_dosage_form": "CAPSULE"}}]).
+"APIs": A list of active pharmaceutical ingredients. Each element must be an object with the key "API_name" (e.g., [{{"API_name": "Acetazolamide", "desired_dosage_form": "CAPSULE", "route_of_administration": "ORAL"}}]).
 NOTE: The extraction must capture specific numerical data (e.g., concentrations, dosages, durations) and direct research details. Use precise technical language in english.
 
 Active Pharmaceutical Ingredients Text Information:

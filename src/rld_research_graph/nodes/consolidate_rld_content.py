@@ -29,7 +29,7 @@ class ConsolidateRLDContext:
             manufacturer = manufacturer,
         )
         
-        return {"rld_research_data": rld_research_data}
+        return {"rld_research_data": [rld_research_data]}
     
     def run(self, state: RLDResearchGraphState, config: RunnableConfig):
         return self.consolidate_RLD_context(state, config)

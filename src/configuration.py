@@ -16,7 +16,8 @@ MAPPING_DRUG_LABEL_SECTION = {
     "rld_how_supplied": "how_supplied_storage_handling",
     "rld_physical_characteristics": "product_info_str",
     "rld_storage_conditions": "how_supplied_storage_handling",
-    "rld_special_characteristics": "description"
+    "rld_special_characteristics": "description",
+    "strengths": "dosage_forms_strengths",
 }
 
 HUMAN_MESSAGE_EXAMPLE1_RLD = {

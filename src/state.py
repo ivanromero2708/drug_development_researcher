@@ -11,6 +11,7 @@ class RLD(BaseModel):
     brand_name: str = Field(..., description= "The brand name for the reference list drug product")
     rld_dosage_form: str = Field(..., description="The dosage form of the reference list drug product.")
     manufacturer: str = Field(..., description= "The manufacturer of the reference list drug product")
+    route_of_administration: str = Field(..., description= "The route of administration of the reference list drug product")
 
 class RLDReportSection(BaseModel):
     rld_section: Literal[
@@ -292,6 +293,10 @@ class API(BaseModel):
         ...,
         description="The name of the pharmaceutical active ingredient."
     )
+    route_of_administration: str = Field(
+        ...,
+        description="The route of administration of the pharmaceutical active ingredient."
+    )
     desired_dosage_form: Literal[
         "AEROSOL, FOAM",
         "AEROSOL, METERED",
@@ -490,7 +495,7 @@ class DrugDevelopmentResearchGraphState(TypedDict):
     product_information: ProductInformation
     is_rld_combination: Literal["Y", "N"]   
     
-    api_literature_data: Annotated[List[APILiteratureResearchData], operator.add]
+    literature_research_api_data: Annotated[List[APILiteratureResearchData], operator.add]
     
     RLDs: List[RLD]
     rld_research_data: Annotated[List[RLDResearchData], operator.add]

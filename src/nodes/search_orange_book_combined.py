@@ -98,16 +98,16 @@ class SearchOrangeBookCombined:
         df_rld = df[df['RLD'].str.strip().str.upper() == "YES"]
         if not df_rld.empty:
             row = df_rld.iloc[0]
-            return row.get("Trade_Name", ""), row.get("Applicant_Full_Name", ""), row.get("DosageForm", "")
+            return row.get("Trade_Name", ""), row.get("Applicant_Full_Name", ""), row.get("DosageForm", ""), row.get("Route", "")
 
         # Fallback to RS
         df_rs = df[df['RS'].str.strip().str.upper() == "YES"]
         if not df_rs.empty:
             row = df_rs.iloc[0]
-            return row.get("Trade_Name", ""), row.get("Applicant_Full_Name", ""), row.get("DosageForm", "")
+            return row.get("Trade_Name", ""), row.get("Applicant_Full_Name", ""), row.get("DosageForm", ""), row.get("Route", "")
 
         # If none found
-        return "", "", ""
+        return "", "", "", ""
 
     async def run(self, state: DrugDevelopmentResearchGraphState, config: RunnableConfig):
         """
@@ -131,9 +131,12 @@ class SearchOrangeBookCombined:
             apis = state["apis"]  # e.g. [ {API_name="Dronabinol"}, {API_name="Acetazolamide"} ]
             api_names = [api.API_name for api in apis]
 
+            dosage_forms = [api.desired_dosage_form for api in apis]
+            routes_of_admin = [api.route_of_administration for api in apis]
+            
             # Retrieve dosage_form, route_of_admin from product_information
-            dosage_form = state["product_information"].product_dosage_form
-            route_of_admin = state["product_information"].route_of_administration
+            dosage_form = dosage_forms[0]
+            route_of_admin = routes_of_admin[0]
 
             # Filter
             df_filtered = self.filter_combined_ingredients(
@@ -144,7 +147,7 @@ class SearchOrangeBookCombined:
             )
 
             # RLD or RS
-            brand, manufacturer, rld_dosage_form = self.find_first_rld_or_rs(df_filtered)
+            brand, manufacturer, rld_dosage_form, route_of_administration = self.find_first_rld_or_rs(df_filtered)
 
             # Build a single RLD object
             # For the 'api_name', we can join them with " + " for clarity
@@ -155,6 +158,7 @@ class SearchOrangeBookCombined:
                 brand_name=brand.strip(),
                 manufacturer=manufacturer.strip(),
                 rld_dosage_form=rld_dosage_form.strip(),
+                route_of_administration = route_of_administration.strip(),
             )
 
             # Store as a single-element list
