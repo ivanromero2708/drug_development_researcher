@@ -21,7 +21,8 @@ class RLDReportSection(BaseModel):
         "rld_how_supplied",
         "rld_physical_characteristics",
         "rld_storage_conditions",
-        "rld_special_characteristics",        
+        "rld_special_characteristics",
+        "strengths",        
         ] = Field(
         ...,
         description = "The name of the specific rld report element of the Active Ingredient exposed in the research report"
