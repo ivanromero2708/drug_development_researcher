@@ -9,11 +9,15 @@ class IsRLDCombination:
     
     def is_rld_combination_edge(self, state: DrugDevelopmentResearchGraphState, config):
         is_rld_combination = state["is_rld_combination"]
+        is_supplement = state["is_supplement"]
         
-        if is_rld_combination == "Y":
-            return "search_orange_book_combined"
+        if is_supplement == "Y":
+            return "supplement_daily_med_research"
         else:
-            return "search_orange_book_single"
+            if is_rld_combination == "Y":
+                return "search_orange_book_combined"
+            else:
+                return "search_orange_book_single"
     
     def run(self, state, config):
         return self.is_rld_combination_edge(state, config)

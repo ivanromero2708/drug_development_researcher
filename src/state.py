@@ -494,7 +494,8 @@ class DrugDevelopmentResearchGraphState(TypedDict):
     apis_text_information: str
     apis: List[API]
     product_information: ProductInformation
-    is_rld_combination: Literal["Y", "N"]   
+    is_rld_combination: Literal["Y", "N"]
+    is_supplement: Literal["Y", "N"]
     
     literature_research_api_data: Annotated[List[APILiteratureResearchData], operator.add]
     

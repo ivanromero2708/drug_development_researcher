@@ -18,6 +18,7 @@ class TestDrugDevelopmentResearcherGraph(unittest.IsolatedAsyncioTestCase):
             "input_documents": [self.input_document_path],
             "apis_text_information": "Dronabinol in Soft gelatin Capsules; Acetazolamide in tablets both in the ORAL route of administration",
             "is_rld_combination": "N",
+            "is_supplement": "N",
             "apis": [],
             #"product_information": [],
             "api_literature_data": [],

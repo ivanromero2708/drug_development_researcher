@@ -1161,7 +1161,7 @@ class Configuration:
     local_orange_book_zip_path: str = r"C:\Users\Ivan\OneDrive - Grupo Procaps\Portafolio NTF\16 - I&D 4.0\2. Investigación de Literatura - Degradación de APIs\1.2 MVP\drug development researcher\databases\orange_book_database.zip"
     number_of_queries: int = 9
     max_results_query: int = 3
-    max_tokens_per_source: int = 4000
+    max_tokens_per_source: int = 3000
     language_for_extraction: str = "english"
     language_for_report: str = "english"
     # Use default_factory for mutable dict fields

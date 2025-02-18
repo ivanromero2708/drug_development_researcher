@@ -26,39 +26,41 @@ class GetCleanDrugLabelInfo:
         title: str,
         brand_name: str,
         api_names: List[str],
+        dosage_form: str,
         is_combination: bool,
         config: RunnableConfig,
     ) -> bool:
         """
         A short LLM-based check that returns True if `title` 
-        corresponds to the desired brand + single/combo logic.
-        For example:
-          - If single => ensure the title does not mention multiple distinct APIs, 'kit', 'pack', 'and', etc.
-          - If combination => ensure the title references multiple APIs or 'pack', etc.
+        corresponds to the desired brand, dosage form, 
+        and single/combo logic.
         """
 
         class LabelTitleCheck(BaseModel):
             logic_check: Literal["YES", "NO"] = Field(
                 ...,
-                description="A short LLM-based check that returns YES if title is correct for single/combo logic."
+                description="A short LLM-based check that returns YES if title is correct for brand/dosage_form and single/combination logic."
             )
 
         system_msg = SystemMessage(content=(
             "You are a classification assistant that decides whether a drug label title matches "
-            "the user’s brand and single- or combination-API criteria. Output only 'YES' or 'NO'."
+            "the user’s brand, dosage form, and single- or combination-API criteria. "
+            "Output only 'YES' or 'NO'."
         ))
 
         user_prompt = f"""
 We have a drug label title: "{title}"
 Brand name to match: "{brand_name}"
 API names: {api_names}
+Desired dosage form: "{dosage_form}"
 is_combination: {is_combination}
 
 Rules:
 - If is_combination=True, the label must mention multiple distinct APIs or synonyms, or indicate multiple active ingredients.
-- If is_combination=False, it must only mention a single API or synonyms, and must not mention multiple actives.
+- If is_combination=False, it must only mention a single API or synonyms, and must not mention multiple distinct actives.
+- The dosage form (e.g., 'tablet', 'capsule') should be compatible with or at least not conflict with the label title.
 
-Do we accept this title as a correct match for the brand and single/combination logic?
+Do we accept this title as a correct match for brand/dosage_form and single/combination logic?
 Answer 'YES' or 'NO' only.
 """.strip()
 
@@ -78,28 +80,29 @@ Answer 'YES' or 'NO' only.
     ##########################
     def get_spl_setid(
         self,
-        brand_name: str,
+        search_name: str,
         api_names: List[str],
+        dosage_form: str,
         is_combination: bool,
         config: RunnableConfig
     ) -> Optional[str]:
         """
-        1. Queries the DailyMed API with brand_name.
-        2. For each entry in the 'data' array, calls LLM check to confirm single/combo correctness.
+        1. Queries the DailyMed API with `search_name` (which could be brand or API).
+        2. For each entry in the 'data' array, calls LLM check to confirm single/combo logic + dosage form.
         3. Picks the entry with highest spl_version among those that pass.
         """
-        url = f"https://dailymed.nlm.nih.gov/dailymed/services/v2/spls.json?drug_name={brand_name}"
+        url = f"https://dailymed.nlm.nih.gov/dailymed/services/v2/spls.json?drug_name={search_name}"
         try:
             response = requests.get(url, timeout=15)
             response.raise_for_status()
         except Exception as e:
-            logging.error(f"Failed to retrieve data from DailyMed for brand '{brand_name}': {e}")
+            logging.error(f"Failed to retrieve data from DailyMed for '{search_name}': {e}")
             return None
 
         data_json = response.json()
         entries = data_json.get("data", [])
         if not entries:
-            logging.warning(f"No SPL found for brand '{brand_name}'.")
+            logging.warning(f"No SPL found for '{search_name}'.")
             return None
 
         accepted = []
@@ -108,15 +111,12 @@ Answer 'YES' or 'NO' only.
             if not title:
                 continue
 
-            # Quick brand check
-            if brand_name.lower() not in title.lower():
-                continue
-
             # Then do LLM check
             is_ok = self.call_llm_for_title_check(
                 title=title,
-                brand_name=brand_name,
+                brand_name=search_name,
                 api_names=api_names,
+                dosage_form=dosage_form,
                 is_combination=is_combination,
                 config=config
             )
@@ -124,7 +124,7 @@ Answer 'YES' or 'NO' only.
                 accepted.append(entry)
 
         if not accepted:
-            logging.warning("No entries passed LLM filter.")
+            logging.warning(f"No entries passed LLM filter for '{search_name}'.")
             return None
 
         # Among accepted, pick highest spl_version
@@ -214,14 +214,18 @@ Answer 'YES' or 'NO' only.
     # 6) Main run
     ##########################
     def run(self, state: RLDResearchGraphState, config: RunnableConfig) -> RLDResearchGraphState:
+        """
+        1) Attempt to use brand_name from RLD to get setid from DailyMed.
+        2) If that fails, fallback to the first API name.
+        3) Validate single/combination logic, dosage form, etc.
+        4) Download and parse the PDF from DailyMed if found.
+        5) Return the structured DrugLabelDoc or empty if not found.
+        """
         try:
             # Retrieve the RLD object from state
             rld_obj = state["RLD"]
-            brand_name = rld_obj.brand_name
-            if not brand_name:
-                raise ValueError("No brand_name found in RLD object")
-
-            # Single vs. combo from state
+            brand_name = (rld_obj.brand_name or "").strip()
+            dosage_form = (rld_obj.rld_dosage_form or "").strip()
             is_combination = (state.get("is_rld_combination","N") == "Y")
 
             # Parse api_name => list
@@ -230,36 +234,59 @@ Answer 'YES' or 'NO' only.
             else:
                 api_names = [rld_obj.api_name.strip()]
 
-            # 1) Get setid
-            setid = self.get_spl_setid(brand_name, api_names, is_combination, config)
-            if not setid:
-                logging.warning("No setid found. Using empty doc.")                
-                return {"drug_label_doc": DrugLabelDoc(
-                    indications_usage="",
-                    dosage_administration="",
-                    dosage_forms_strengths="",
-                    contraindications="",
-                    warnings_precautions="",
-                    adverse_reactions="",
-                    drug_interactions="",
-                    use_specific_populations="",
-                    overdosage="",
-                    description="",
-                    clinical_pharmacology="",
-                    nonclinical_toxicology="",
-                    clinical_studies="",
-                    how_supplied_storage_handling="",
-                    patient_counseling="",
-                    product_info_str=""
-                )}
+            # 1) First try brand_name
+            setid = None
+            if brand_name:
+                setid = self.get_spl_setid(
+                    search_name=brand_name,
+                    api_names=api_names,
+                    dosage_form=dosage_form,
+                    is_combination=is_combination,
+                    config=config
+                )
+            else:
+                logging.warning("No brand_name found in RLD; skipping brand-based search.")
 
-            # 2) Download PDF
+            # 2) If brand_name gave no results, fallback to first API name
+            if not setid:
+                logging.warning("No setid found for brand. Attempting fallback with API name.")
+                setid = self.get_spl_setid(
+                    search_name=api_names[0],
+                    api_names=api_names,
+                    dosage_form=dosage_form,
+                    is_combination=is_combination,
+                    config=config
+                )
+            if not setid:
+                logging.warning("No setid found. Using empty doc.")
+                return {
+                    "drug_label_doc": DrugLabelDoc(
+                        indications_usage="",
+                        dosage_administration="",
+                        dosage_forms_strengths="",
+                        contraindications="",
+                        warnings_precautions="",
+                        adverse_reactions="",
+                        drug_interactions="",
+                        use_specific_populations="",
+                        overdosage="",
+                        description="",
+                        clinical_pharmacology="",
+                        nonclinical_toxicology="",
+                        clinical_studies="",
+                        how_supplied_storage_handling="",
+                        patient_counseling="",
+                        product_info_str=""
+                    )
+                }
+
+            # 3) Download PDF
             pdf_file = self.download_pdf(setid)
 
-            # 3) Extract text + tables
+            # 4) Extract text + tables
             full_text = self.extract_text_and_append_tables(pdf_file)
 
-            # 4) If "PRINCIPAL DISPLAY PANEL" found, separate it
+            # 5) If "PRINCIPAL DISPLAY PANEL" found, separate it
             pdp_marker = "PRINCIPAL DISPLAY PANEL"
             pdp_idx = full_text.find(pdp_marker)
             product_info_str = ""
@@ -267,10 +294,10 @@ Answer 'YES' or 'NO' only.
                 product_info_str = full_text[pdp_idx:].strip()
                 full_text = full_text[:pdp_idx].strip()
 
-            # 5) Split PDF sections
+            # 6) Split PDF sections
             splitted = self.split_pdf_sections(full_text)
 
-            # 6) Map to fields
+            # 7) Map to fields
             label_data = {
                 "indications_usage": "",
                 "dosage_administration": "",
@@ -313,27 +340,29 @@ Answer 'YES' or 'NO' only.
                 if f:
                     label_data[f] = txt.strip()
 
-            # 7) Build doc model
+            # 8) Build doc model
             return {"drug_label_doc": DrugLabelDoc(**label_data)}
 
         except Exception as e:
             logging.error(f"Error in get_clean_drug_label_info: {str(e)}")
             # Return empty doc
-            return {"drug_label_doc": DrugLabelDoc(
-                indications_usage="",
-                dosage_administration="",
-                dosage_forms_strengths="",
-                contraindications="",
-                warnings_precautions="",
-                adverse_reactions="",
-                drug_interactions="",
-                use_specific_populations="",
-                overdosage="",
-                description="",
-                clinical_pharmacology="",
-                nonclinical_toxicology="",
-                clinical_studies="",
-                how_supplied_storage_handling="",
-                patient_counseling="",
-                product_info_str=""
-            )}
+            return {
+                "drug_label_doc": DrugLabelDoc(
+                    indications_usage="",
+                    dosage_administration="",
+                    dosage_forms_strengths="",
+                    contraindications="",
+                    warnings_precautions="",
+                    adverse_reactions="",
+                    drug_interactions="",
+                    use_specific_populations="",
+                    overdosage="",
+                    description="",
+                    clinical_pharmacology="",
+                    nonclinical_toxicology="",
+                    clinical_studies="",
+                    how_supplied_storage_handling="",
+                    patient_counseling="",
+                    product_info_str=""
+                )
+            }
