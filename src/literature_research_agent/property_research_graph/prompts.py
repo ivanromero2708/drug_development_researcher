@@ -24,14 +24,14 @@ A JSON object that contains the next variables:
 
 2. The name of the specific physicochemical property selected from this list:
 - polymorphs: A thorough description of the API’s polymorphic forms including the number of forms, crystal systems, melting points, density differences, thermodynamic data, and literature references.
-- scheme_of_degradation_route: A detailed explanation of the degradation pathways, including conditions (e.g., UV, pH), mechanisms, degradation products, kinetic parameters, and reference URLs.
-- stability_indicators: An exhaustive description of the API’s stability data, including recovery percentages, assay results (e.g., from stability-indicating HPLC), observed trends under stress conditions, and citations.
-- impurities: Detailed information on impurities, including CAS numbers, chemical formulas, molecular weights, measured levels, and whether they are synthetic byproducts, degradation products, or metabolites, with reference URLs.
-- biopharmaceutical_classification: A detailed classification based on physicochemical properties and permeability, including experimental correlations and citations.
-- hygroscopicity: Detailed data on moisture absorption, experimental conditions (e.g., relative humidity, temperature), and quantitative measurements with reference URLs.
+- scheme_of_degradation_route: A detailed explanation of the degradation pathways, including conditions, mechanisms, degradation products, kinetic parameters, and reference URLs.
+- stability_indicators: An exhaustive description of the API’s stability data, observed trends under stress conditions, and citations.
+- impurities: Detailed information on impurities, including chemical formulas, molecular weights, measured levels, and whether they are synthetic byproducts, degradation products, or metabolites, with reference URLs.
+- biopharmaceutical_classification: The BCS drug classification and their references
+- hygroscopicity: Detailed data on moisture absorption of the drug with reference URLs.
 - chirality_or_specific_optical_rotation: Information on chiral properties or specific optical rotation, including measured values, enantiomeric purity, and supporting literature references.
-- glass_transition_temperature: The glass transition temperature (Tg) including determination method (e.g., DSC), exact values or ranges, and reference URLs.
-- degradation_temperature: The temperature at which the API degrades, including experimental conditions, thresholds, kinetic data, and supporting references.
+- glass_transition_temperature: The glass transition temperature (Tg) exact values or ranges, and reference URLs.
+- degradation_temperature: The temperature at which the API degrades and supporting references.
 
 The inputs are:
 1. Query: A text query indicating the specific property to focus on, provided next:

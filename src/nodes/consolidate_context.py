@@ -16,7 +16,7 @@ class ConsolidateContext:
         api_literature_json = json.dumps(api_literature_list)
 
         # Convertir cada objeto RLDResearchData a dict y luego serializar la lista a JSON
-        rld_research_list = [rld.model_dump() for rld in state["rld_research_data"]]
+        rld_research_list = [rld.model_dump() for rld in state["product_research_data"]]
         rld_research_json = json.dumps(rld_research_list)
         
         combined_context = {

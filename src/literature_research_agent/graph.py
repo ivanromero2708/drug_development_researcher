@@ -30,7 +30,7 @@ literature_researcher_graph_builder.add_node("extract_information", extract_info
 literature_researcher_graph_builder.add_node("search_external_APIs", search_external_APIs.run)
 
 # Logic
-literature_researcher_graph_builder. add_edge(START, "search_external_APIs")
+literature_researcher_graph_builder.set_entry_point("search_external_APIs")
 literature_researcher_graph_builder.add_edge("search_external_APIs", "generate_sub_questions")
 literature_researcher_graph_builder.add_conditional_edges("generate_sub_questions", initiate_property_research.run, ["property_research"])
 literature_researcher_graph_builder.add_edge("property_research", "consolidate_report_for_api")

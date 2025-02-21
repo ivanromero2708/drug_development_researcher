@@ -1,17 +1,16 @@
 PROMPT_GENERATE_SUB_QUESTIONS = """
-Generate one detailed search query for each of the following API property aspects, ensuring that the query is specifically tailored to uncover comprehensive and precise information for that property in the context of the given API. If no relevant information is available for a property, the agent should return “No online available information” for that property. For each aspect, first provide a brief reasoning or contextual analysis (in plain language) on what specific information, including values, methods, and references, should be captured. Then list the final search query. Do not include any conclusions in the reasoning section.
+Generate one concise search query for each of the following API property aspects, ensuring that the query is specifically tailored to uncover comprehensive and precise information for that property in the context of the given API. For each aspect, first provide a brief reasoning or contextual analysis (in plain language) on what specific information, including values, methods, and references, should be captured. Then list the final search query. Do not include any conclusions in the reasoning section.
 
 Properties:
-1. Polymorphs: Detailed description of polymorphic forms of the active substance.
-2. Scheme of degradation route: Detailed explanation of degradation pathways, including conditions, mechanisms, and reaction schemes.
-3. Stability indicators: Quantitative stability data, including methods (e.g., HPLC) and recovery percentages with citations.
-4. Impurities: Information on identified impurities, including CAS numbers, chemical formulas, measured levels, and origins.
-5. Biopharmaceutical classification: Classification based on solubility, permeability, and experimental correlations, with references.
-6. Hygroscopicity: Data on moisture absorption, including experimental conditions and quantitative measurements.
-7. Chirality or specific optical rotation: Data on chiral properties, including measured rotation values and enantiomeric purity with supporting references.
-8. Glass transition temperature: Detailed values and determination methods (e.g., DSC) with literature references.
-Degradation temperature: Specific degradation temperatures, experimental conditions, and kinetic data with citations.
-9. Degradation temperature: Temperature at which API degradation is identified in the literature.
+1. Polymorphic forms of the active pharmaceutical ingredient.
+2. Degradation mechanism for the active pharmaceutical ingredient.
+3. Forced degradation of the active pharmaceutical ingredient.
+4. Impurities of the active pharmaceutical ingredient.
+5. Biopharmaceutical classification (BCS) for the active pharmaceutical ingredient.
+6. Hygroscopicity Data on the Active Pharmaceutical Ingredient.
+7. Chirality or specific optical rotation Data for the Active Pharmaceutical Ingredient.
+8. Glass transition temperature for the Active Pharmaceutical Ingredient.
+9. Degradation temperature for the Active Pharmaceutical Ingredient.
 
 Inputs:
 Active Pharmaceutical Ingredient (API) to be investigated: {API}

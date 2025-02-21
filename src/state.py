@@ -158,12 +158,74 @@ class RLDResearchData(BaseModel):
     brand_name: str = Field(..., description="The brand name for the reference list drug")
     manufacturer: str = Field(..., description="The manufacturer for the reference list drug")
 
+class ProductResearchData(BaseModel):
+    API_name_with_UNII: str = Field(
+        ...,
+        description = "The name of the active pharmaceutical ingredient (API) along with its Unique Ingredient Identifier (UNII). For example, “Acetazolamide (UNII: O3FX965V0I)”. This helps clearly identify the exact chemical substance used in the reference listed drug."
+        )
+    inactive_ingredients_with_UNII_str: str = Field(
+        ...,
+        description = "A list or description of the inactive ingredients (excipients) in the RLD, each accompanied by its UNII (or other relevant identifier). For example, lactose monohydrate, starch, gelatin, etc. This section focuses on the excipients’ identity and regulatory references."
+        )
+    type_pckg_material: str = Field(
+        ...,
+        description = "The packaging material or container system used for the RLD, such as amber glass bottles, plastic bottles, blister packs, and so forth. This indicates how the product is presented commercially and what material is used to store or protect it."
+        )
+    rld_how_supplied: str = Field(
+        ...,
+        description = "The product’s commercial presentations and packaging details (e.g., number of tablets per bottle, NDC codes, package inserts). It often includes official references for how the product is supplied in the market."
+        )
+    rld_physical_characteristics: str = Field(
+        ...,
+        description = "Definition: The color, size, shape, imprint codes, scoring, or other visual/physical traits of the finished dosage form (e.g., “white, round, 9 mm, T53 engraved”)."
+        )
+    rld_special_characteristics: str = Field(
+        ...,
+        description = "Any special considerations or distinctive aspects of the RLD—such as the crystalline form used, particle size, unusual manufacturing steps, or advanced formulation technologies. Often highlights unique attributes of the API/excipients."
+        )
+    rld_storage_conditions: str = Field(
+        ..., 
+        description="The storage conditions for the rld product"
+        )
+    strengths: str = Field(
+        ..., 
+        description="The strengths for the rld product"
+        )
+    brand_name: str = Field(
+        ..., 
+        description="The brand name for the reference list drug"
+        )
+    manufacturer: str = Field(
+        ..., 
+        description="The manufacturer for the reference list drug"
+        )
 
+class PotentialRLD(BaseModel):
+    api_name: str
+    brand_name: str
+    manufacturer: str
+    title: str
+    image_url: str
+    setid: str
 
-
-
-
-
+class ProductReportSection(BaseModel):
+    product_report_section: Literal[
+        "API_name_with_UNII",
+        "inactive_ingredients_with_UNII_str",
+        "type_pckg_material",
+        "rld_how_supplied",
+        "rld_physical_characteristics",
+        "rld_storage_conditions",
+        "rld_special_characteristics",
+        "strengths",        
+        ] = Field(
+        ...,
+        description = "The name of the specific rld report element of the Active Ingredient exposed in the research report"
+    )
+    research_report: str = Field(
+        ...,
+        description="A plain text research report of the given information in a highly pharmaceutical chemist scientific, detailed and exhaustive style."
+    )
 
 
 
@@ -500,9 +562,13 @@ class DrugDevelopmentResearchGraphState(TypedDict):
     literature_research_api_data: Annotated[List[APILiteratureResearchData], operator.add]
     
     RLDs: List[RLD]
-    rld_research_data: Annotated[List[RLDResearchData], operator.add]
-   
+    feedback_decision: Literal["retry_daily_med", "go_enrich_accept", "go_enrich_blank"]
+    potential_RLDs: Annotated[List[PotentialRLD], operator.add]
+    selected_RLDs: List[PotentialRLD]    
     
+    product_research_report: Annotated[List[ProductReportSection], operator.add]
+    product_research_data: Annotated[List[ProductResearchData], operator.add]
+
     patent_background_restrictions:str
 #    api_monographs: List[APIMonograph]
 #    drug_product_monographs: List[DrugProductMonograph]

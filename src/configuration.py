@@ -9,6 +9,23 @@ from dotenv import load_dotenv
 
 load_dotenv()  # Cargar variables de entorno desde .env
 
+SECTIONCODE_MAP = {
+    "34067-9": "indications_usage",
+    "34068-7": "dosage_administration",
+    "43678-2": "dosage_forms_strengths",
+    "34070-3": "contraindications",
+    "43685-7": "warnings_precautions",
+    "34084-4": "adverse_reactions",
+    "34073-7": "drug_interactions",
+    "43684-0": "use_specific_populations",
+    "34088-5": "overdosage",
+    "34089-3": "description",
+    "43680-8": "nonclinical_toxicology",
+    "34092-7": "clinical_studies",
+    "34069-5": "how_supplied_storage_handling",
+    "34076-0": "patient_counseling",
+}
+
 MAPPING_DRUG_LABEL_SECTION = {
     "API_name_with_UNII": "product_info_str",
     "inactive_ingredients_with_UNII_str": "product_info_str",
@@ -1160,8 +1177,8 @@ class Configuration:
     TAVILY_API_KEY: str = os.getenv("TAVILY_API_KEY")
     local_orange_book_zip_path: str = r"C:\Users\Ivan\OneDrive - Grupo Procaps\Portafolio NTF\16 - I&D 4.0\2. Investigación de Literatura - Degradación de APIs\1.2 MVP\drug development researcher\databases\orange_book_database.zip"
     number_of_queries: int = 9
-    max_results_query: int = 3
-    max_tokens_per_source: int = 3000
+    max_results_query: int = 5
+    max_tokens_per_source: int = 1000
     language_for_extraction: str = "english"
     language_for_report: str = "english"
     # Use default_factory for mutable dict fields
@@ -1170,6 +1187,7 @@ class Configuration:
     HUMAN_MESSAGE_EXAMPLE2_RLD: Dict = field(default_factory=lambda: HUMAN_MESSAGE_EXAMPLE2_RLD)
     AI_MESSAGE_EXAMPLE2_RLD: Dict = field(default_factory=lambda: AI_MESSAGE_EXAMPLE2_RLD)
     MAPPING_DRUG_LABEL_SECTION: Dict = field(default_factory=lambda: MAPPING_DRUG_LABEL_SECTION)
+    SECTIONCODE_MAP: Dict = field(default_factory=lambda: SECTIONCODE_MAP)
     
     @classmethod
     def from_runnable_config(cls, config):
