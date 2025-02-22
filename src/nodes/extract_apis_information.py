@@ -19,7 +19,7 @@ class ExtractAPIsInformation:
         # Initialize the node elements using the configuration.
         conf = Configuration.from_runnable_config(config)
         language_for_extraction = conf.language_for_extraction
-        llm = ChatOpenAI(model=conf.o3mini, reasoning_effort = "medium")
+        llm = ChatOpenAI(model=conf.gpt4omini, temperature=0)
         
         # Configure structured output for the ProductInformation model.
         structured_llm = llm.with_structured_output(APIs)

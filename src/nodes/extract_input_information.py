@@ -62,7 +62,7 @@ class ExtractInputInformation:
 
         # Initialize the language model using the configuration.
         conf = Configuration.from_runnable_config(config)
-        llm = ChatOpenAI(model=conf.o3mini, reasoning_effort = "medium")
+        llm = ChatOpenAI(model=conf.gpt4omini, temperature=0)
         # Configure structured output for the ProductInformation model.
         structured_llm = llm.with_structured_output(ProductInformation)
 
