@@ -101,7 +101,7 @@ class GenerateRLDContent:
         )
         
         # 10) Return the structured output as a pydantic model
-        return {"product_section_research_report": [structured_response]}  # <-- changed
+        return {"product_research_data": [structured_response]}  # <-- changed
     
     def run(self, state: GenerateProductContentGraphState, config: RunnableConfig):
         return self.generate_rld_content(state, config)

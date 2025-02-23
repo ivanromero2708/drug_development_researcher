@@ -3,7 +3,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from src.state import DrugDevelopmentResearchGraphState
 
 from src.literature_research_agent.graph import literature_researcher_graph_builder
-from src.product_research_graph.graph import product_research_graph
+from src.product_research_graph.graph import product_research_graph_builder
 
 from .nodes import(
     ExtractAPIsInformation,
@@ -27,6 +27,7 @@ is_rld_combination_edge = IsRLDCombination()
 
 # Create Graph
 drug_development_researcher_graph_builder = StateGraph(DrugDevelopmentResearchGraphState)
+drug_development_researcher_memory = MemorySaver()
 
 # Add nodes
 # 1) Basic extraction
@@ -34,10 +35,10 @@ drug_development_researcher_graph_builder.add_node("extract_apis_information", e
 drug_development_researcher_graph_builder.add_node("extract_input_information", extract_input_information.run)
 
 # 2) Literature research subgraph
-drug_development_researcher_graph_builder.add_node("literature_research", literature_researcher_graph_builder.compile())
+drug_development_researcher_graph_builder.add_node("literature_research", literature_researcher_graph_builder.compile(checkpointer=drug_development_researcher_memory))
 
 # 3) Product research subgraph
-drug_development_researcher_graph_builder.add_node("product_research", product_research_graph)
+drug_development_researcher_graph_builder.add_node("product_research", product_research_graph_builder.compile(checkpointer=drug_development_researcher_memory))
 
 # 4) Consolidation & final
 drug_development_researcher_graph_builder.add_node("consolidate_context", consolidate_context.run)
@@ -74,7 +75,6 @@ drug_development_researcher_graph_builder.add_edge("consolidate_context", "rende
 drug_development_researcher_graph_builder.add_edge("render_report", END)
 
 # Compile
-drug_development_researcher_memory = MemorySaver()
 drug_development_researcher_graph = drug_development_researcher_graph_builder.compile(
     checkpointer=drug_development_researcher_memory,
 )

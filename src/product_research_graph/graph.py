@@ -10,12 +10,14 @@ from src.product_research_graph.nodes import (
     SearchOrangeBookCombined,
     DailyMedResearch,
     FormulatorFeedbackProductResearch,
+    ParallelizationOpNode,
 )
 
 from src.product_research_graph.edges import (
     ParallelizeDailyMedResearch,
     RouteProductResearch,
     RouteProductEnrichment,
+    ParallelizeProductEnrichment,
 )
 
 # Initialize nodes
@@ -24,11 +26,13 @@ search_orange_book_single = SearchOrangeBookSingle()
 search_orange_book_combined = SearchOrangeBookCombined()
 daily_med_research = DailyMedResearch()
 formulator_feedback_product_research = FormulatorFeedbackProductResearch()
+parallelization_op_node = ParallelizationOpNode()
 
 # Initialize edges
 route_product_research = RouteProductResearch()
 route_product_enrichment = RouteProductEnrichment()
 parallelize_daily_med_research = ParallelizeDailyMedResearch()
+parallelize_product_enrichment = ParallelizeProductEnrichment()
 
 # Create Graph
 product_research_graph_builder =  StateGraph(input = ProductResearchGraphState, output = ProductResearchOutputState)
@@ -44,6 +48,8 @@ product_research_graph_builder.add_node("daily_med_research", daily_med_research
 
 # 3) Formulator feedback on product research
 product_research_graph_builder.add_node("formulator_feedback_product_research", formulator_feedback_product_research.run)
+
+product_research_graph_builder.add_node("parallelization_op_node", parallelization_op_node.run)
 
 # 4) Parallelize Product Enrichment
 product_research_graph_builder.add_node("product_enrichment", product_enrichement_graph_builder.compile())
@@ -78,9 +84,11 @@ product_research_graph_builder.add_conditional_edges(
 # Formulator feedback
 product_research_graph_builder.add_edge("daily_med_research", "formulator_feedback_product_research")
 
+product_research_graph_builder.add_edge("formulator_feedback_product_research", "parallelization_op_node")
+
 # Route to product enrichment
 product_research_graph_builder.add_conditional_edges(
-    "formulator_feedback_product_research",
+    "parallelization_op_node",
     route_product_enrichment.run,
     ["product_enrichment", "daily_med_research"]
 )
@@ -91,6 +99,5 @@ product_research_graph_builder.add_edge("product_enrichment", END)
 # Compile graph
 product_research_graph_memory = MemorySaver()
 product_research_graph = product_research_graph_builder.compile(
-    interrupt_before=["formulator_feedback_product_research"],
     #checkpointer=product_research_graph_memory,
 )

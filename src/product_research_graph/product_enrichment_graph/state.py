@@ -46,7 +46,7 @@ class GenerateProductContentGraphState(TypedDict):
     selected_RLD: PotentialRLD
     drug_label_doc: DrugLabelDoc
     product_report_section: str
-    product_section_research_report: Annotated[List[RLDReportSection], operator.add]
+    product_research_data: Annotated[List[RLDReportSection], operator.add]
 
 
 

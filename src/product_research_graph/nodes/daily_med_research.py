@@ -29,7 +29,7 @@ class DailyMedResearch(BaseModel):
 
         Base pattern:
           https://dailymed.nlm.nih.gov/dailymed/search.cfm?adv=1&labeltype=all&pagesize=200&page=1&query=
-          NAME%3A%28{search_name}%29+AND+43678-2%3A%28{dosage_form}%29+
+          NAME%3A%28{search_name}%29+AND+43678-2%3A%28{dosage_form}%29*
         """
         search_name_encoded = quote(search_name)
         dosage_form_encoded = quote(dosage_form)
@@ -40,7 +40,7 @@ class DailyMedResearch(BaseModel):
         )
 
         # Example: "NAME%3A%28aspirin%29+AND+43678-2%3A%28tablet%29+"
-        query_str = f"NAME%3A%28{search_name_encoded}%29+AND+43678-2%3A%28{dosage_form_encoded}%29+"
+        query_str = f"NAME%3A%28{search_name_encoded}%29+AND+43678-2%3A%28{dosage_form_encoded}%29*"
         return base_url + query_str
 
     def parse_search_results(self, html: str, api_name: str, brand_name, manufacturer) -> List[PotentialRLD]:
@@ -100,8 +100,8 @@ class DailyMedResearch(BaseModel):
         3) Builds the advanced search URL (with URL-encoding), requests the HTML, parses results.
         4) Returns 'potentialRLDs' as a list[PotentialRLD].
         """
-        try:
-            rld_obj = state["RLD"]
+        try:      
+            rld_obj = state["RLD"]      
             brand_name = (rld_obj.brand_name or "").strip()
             manufacturer = (rld_obj.manufacturer or "").strip()
             dosage_form = (rld_obj.rld_dosage_form or "").strip()
@@ -116,7 +116,7 @@ class DailyMedResearch(BaseModel):
 
             if not brand_name or not dosage_form:
                 logging.warning("No brand_name or dosage_form found. Returning empty list.")
-                return {"potentialRLDs": PotentialRLD(api_name=rld_obj.api_name, brand_name = rld_obj.api_name, manufacturer = "", title="", image_url="", setid="")}
+                return {"potential_RLDs": PotentialRLD(api_name=rld_obj.api_name, brand_name = rld_obj.api_name, manufacturer = "", title="", image_url="", setid="")}
 
             # 1) Build the advanced search URL with quote
             adv_search_url = self.build_advanced_search_url(brand_name, dosage_form)
@@ -128,14 +128,15 @@ class DailyMedResearch(BaseModel):
                 resp.raise_for_status()
             except Exception as e:
                 logging.error(f"Failed to retrieve DailyMed page: {e}")
-                return {"potentialRLDs": PotentialRLD(api_name=rld_obj.api_name, brand_name = rld_obj.api_name, manufacturer = "", title="", image_url="", setid="")}
+                return {"potential_RLDs": PotentialRLD(api_name=rld_obj.api_name, brand_name = rld_obj.api_name, manufacturer = "", title="", image_url="", setid="")}
 
             # 3) Parse the search results into typed PotentialRLD objects
             potential_rlds = self.parse_search_results(html = resp.text, api_name = rld_obj.api_name, brand_name = brand_name, manufacturer = manufacturer)
 
             # 4) Return them in the 'potentialRLDs' key
-            return {"potentialRLDs": [potential_rlds]}
+            return {"potential_RLDs": [potential_rlds]}
 
         except Exception as exc:
             logging.error(f"DailyMedResearch node failed: {exc}", exc_info=True)
-            return {"potentialRLDs": PotentialRLD(api_name=rld_obj.api_name, brand_name = rld_obj.api_name, manufacturer = "", title="", image_url="", setid="")}
+            rld_obj = state["RLD"]
+            return {"potential_RLDs": PotentialRLD(api_name=rld_obj.api_name, brand_name = rld_obj.api_name, manufacturer = "", title="", image_url="", setid="")}

@@ -10,7 +10,7 @@ class ConsolidateRLDContext:
     def consolidate_RLD_context(self, state: ProductEnrichmentGraphState, config: RunnableConfig):
         # Convertir la lista de PropertyReportSection en un diccionario que mapea la propiedad a su research_report
         rld_reports = {}
-        for section in state["product_research_report"]:
+        for section in state["product_research_data"]:
             rld_reports[section.product_report_section] = section.research_report
         
         rld_name = state["selected_RLD"].brand_name
@@ -29,7 +29,7 @@ class ConsolidateRLDContext:
             manufacturer = manufacturer,
         )
         
-        return {"product_research_data": [product_research_data]}
+        return {"product_research_report": [product_research_data]}
     
     def run(self, state: ProductEnrichmentGraphState, config: RunnableConfig):
         return self.consolidate_RLD_context(state, config)

@@ -2,7 +2,7 @@ from src.product_research_graph.state import ProductResearchGraphState
 from langchain_core.runnables import RunnableConfig
 from langgraph.constants import Send
 
-class RouteProductEnrichment:
+class ParallelizeProductEnrichment:
     """
     Conditional edge that reads `feedback_decision` from the state.
     
@@ -16,23 +16,11 @@ class RouteProductEnrichment:
         pass
 
     def run(self, state: ProductResearchGraphState, config: RunnableConfig):
-        decision = state.get("feedback_decision", None)
-
-        if decision == "retry_daily_med":
-            return [
-                Send("daily_med_research", 
-                    {
-                        "RLD": RLD,
-                    }
-                ) 
-                for RLD in state["RLDs"]
-            ]
-        elif decision in ("go_enrich_accept", "go_enrich_blank"):
-            return [
-                Send("product_enrichment", 
-                    {
-                        "selected_RLD": selected_RLD,
-                    }
-                ) 
-                for selected_RLD in state["selected_RLDs"]
-            ]
+        return [
+            Send("product_enrichment", 
+                {
+                    "selected_RLD": selected_RLD,
+                }
+            ) 
+            for selected_RLD in state["selected_RLDs"]
+        ]

@@ -3,5 +3,6 @@ from src.product_research_graph.nodes.search_orange_book_combined import SearchO
 from src.product_research_graph.nodes.search_orange_book_single import SearchOrangeBookSingle
 from src.product_research_graph.nodes.daily_med_research import DailyMedResearch
 from src.product_research_graph.nodes.formulator_feedback_product_research import FormulatorFeedbackProductResearch
+from src.product_research_graph.nodes.parallelization_op_node import ParallelizationOpNode
 
-__all__ = ["SearchByIngredient", "SearchOrangeBookCombined", "SearchOrangeBookSingle", "DailyMedResearch", "FormulatorFeedbackProductResearch"]
+__all__ = ["SearchByIngredient", "SearchOrangeBookCombined", "SearchOrangeBookSingle", "DailyMedResearch", "FormulatorFeedbackProductResearch", "ParallelizationOpNode"]
