@@ -33,14 +33,14 @@ class FormulatorFeedbackProductResearch:
         # Extract values from the human response
         feedback_decision = human_response.get("feedback_decision")
 
-        if feedback_decision == "retry_api":
+        if feedback_decision == "Retry with API name":
             return Command(goto="parallelization_op_node", update={"RLDs": human_response.get("RLDs", []), "feedback_decision": "retry_daily_med"})
         
-        elif feedback_decision == "retry_dosage":
+        elif feedback_decision == "Retry with dosage forms":
             updated_RLDs = human_response.get("RLDs", [])
             return Command(goto="parallelization_op_node", update={"RLDs": human_response.get("RLDs", []), "feedback_decision": "retry_daily_med"})
         
-        elif feedback_decision in ["enrich_as_is", "enrich_selected"]:
+        elif feedback_decision in ["Proceed to DailyMed Research AS IS", "Proceed to DailyMed Research with SELECTED APIs"]:
             updated_RLDs = human_response.get("RLDs", [])
             return Command(goto="parallelization_op_node", update={"selected_RLDs": human_response.get("selected_RLDs", []), "feedback_decision": "go_enrich_accept"})
         

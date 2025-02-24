@@ -77,19 +77,20 @@ def initialize_graph_state(
     }
 
 # ---------------------------------------------
-# Helper: Run the Graph until Next Interrupt
+# Helper: Run the Graph until Next Interrupt or End
 # ---------------------------------------------
 async def run_until_interrupt_or_end(
-    state: dict, thread_info: dict, verbose: bool = True
+    state_or_command: Any, thread_info: dict, verbose: bool = True
 ):
     """
-    Runs the 'drug_development_researcher_graph' until completion or interrupt.
-    Returns (events, interrupted, last_event).
+    Runs the 'drug_development_researcher_graph' until completion or an interrupt occurs.
+    Returns a tuple of (events, interrupted, last_event).
+    Accepts either an initial state or a Command (with resume=...) as input.
     """
     interrupted = False
     events = []
     async for event in drug_development_researcher_graph.astream(
-        state, thread_info, stream_mode="updates"
+        state_or_command, thread_info, stream_mode="updates"
     ):
         events.append(event)
         if verbose:
@@ -98,6 +99,37 @@ async def run_until_interrupt_or_end(
             interrupted = True
             break
     return events, interrupted, event
+
+
+async def run_before_interruption(initial_state, thread_info):
+    # Run the graph until an interrupt is reached.
+    async for event in drug_development_researcher_graph.astream(initial_state, thread_info, stream_mode="updates"):
+        event = event
+    
+    # Extraction Logic after Interruption
+    interrupt_payload = event["__interrupt__"]
+    
+    potential_RLDs_interrupted_raw = interrupt_payload[0].value["potential_RLDs"]
+    potential_RLDs = [rld for sublist in potential_RLDs_interrupted_raw for rld in sublist]
+
+    current_RLDs = interrupt_payload[0].value["RLDs"]
+    
+    return potential_RLDs, current_RLDs
+        
+async def run_after_interruption(human_response, thread_info):
+    # Resume the graph with the human response
+    async for event in drug_development_researcher_graph.astream(Command(resume=human_response), thread_info, stream_mode="updates"):
+        event = event
+
+    # Extraction Logic after Interruption
+    interrupt_payload = event["__interrupt__"]
+    
+    potential_RLDs_interrupted_raw = interrupt_payload[0].value["potential_RLDs"]
+    potential_RLDs = [rld for sublist in potential_RLDs_interrupted_raw for rld in sublist]
+
+    current_RLDs = interrupt_payload[0].value["RLDs"]
+    
+    return potential_RLDs, current_RLDs
 
 # ---------------------------------------------
 # MAIN UI
@@ -116,8 +148,15 @@ def main():
         st.session_state["thread_id"] = ""
 
     # 1) File Uploader
-    st.subheader("1. Upload Product Info PDF")
-    uploaded_pdf = st.file_uploader("Choose a PDF file", type=["pdf"])
+    st.subheader("1. Upload Available Product Information")
+    uploaded_pdf = st.file_uploader(
+        """Upload here a set of input files in several formats (**Microsoft Word**, **PDF**, **Images**).\n\n        
+For example:\n\n
+1 . **SOW** or **DMI** for Product (**Required**).\n\n
+2 . API **DMFs** (**Optional**)\n\n
+3 . **CoA** for APIs (**Optional**).\n\n
+        """, type=["pdf"]
+    )
     pdf_path = ""
     if uploaded_pdf is not None:
         os.makedirs("temp_uploads", exist_ok=True)
@@ -127,34 +166,25 @@ def main():
         st.success(f"Uploaded: {uploaded_pdf.name}")
 
     # 2) Text Input for APIs Info
-    st.subheader("2. Describe APIs (Text)")
+    st.subheader("2. Describe APIs complete name, desired dosage form, and route of administration.")
     apis_text_information = st.text_area(
-        "Example: 'Dronabinol in Soft Gelatin Capsules, Acetazolamide in Tablets, all oral route'",
+        "**Example 1**: '**Dronabinol** in Soft Gelatin Capsules, **Acetazolamide** in Tablets, all oral route \n\n **Example 2**: '**Vonoprazan Fumarate** in tablets, oral route of administration'",
         height=100,
+        placeholder="Ingredient complete name (including if it is a base or salt form), dosage form (Per each ingredient), and route of administration (Per each ingredient in the product)",
     )
 
     # 3) Additional toggles
-    st.subheader("3. Additional Config")
+    st.subheader("3. Additional Configuration")
     colA, colB = st.columns(2)
     with colA:
-        is_supplement_sel = st.radio(
-            "Is this product a supplement?",
-            ["N", "Y"],
-            index=0
-        )
+        is_supplement_sel = st.radio("Is this product a supplement?", ["No", "Yes"], index=0)
     with colB:
-        is_rld_combination_sel = st.radio(
-            "Is RLD a combination product?",
-            ["N", "Y"],
-            index=0
-        )
+        is_rld_combination_sel = st.radio("Is the Reference Product a Fixed Dose Combination?", ["No", "Yes"], index=0)
 
     # 4) Advanced Configuration in Sidebar
     st.sidebar.subheader("Advanced Configuration")
     with st.sidebar.expander("Show/Hide Config", expanded=False):
-        # We'll allow the user to override some of the Configuration fields
         default_config = Configuration()  # get default values
-        # number_of_queries
         n_queries = st.number_input(
             "Number of sub-queries (for property research)",
             min_value=1,
@@ -176,29 +206,10 @@ def main():
             value=default_config.max_tokens_per_source,
             step=50
         )
-        # language_for_extraction
-        lang_extraction = st.selectbox(
-            "Language for extraction",
-            ["english", "spanish", "french", "german"],
-            index=0
-        )
-        # language_for_report
-        lang_report = st.selectbox(
-            "Language for final report",
-            ["english", "spanish", "french", "german"],
-            index=0
-        )
-        # local_orange_book path
-        local_ob_path = st.text_input(
-            "Local Orange Book ZIP path",
-            value=default_config.local_orange_book_zip_path
-        )
-        # If you want TAVILY_API_KEY from user input
-        new_tavily_key = st.text_input(
-            "TAVILY_API_KEY (leave blank to use .env or system default)",
-            value="",
-            type="password"
-        )
+        lang_extraction = st.selectbox("Language for extraction", ["english", "spanish", "french", "german"], index=0)
+        lang_report = st.selectbox("Language for final report", ["english", "spanish", "french", "german"], index=0)
+        local_ob_path = st.text_input("Local Orange Book ZIP path", value=default_config.local_orange_book_zip_path)
+        new_tavily_key = st.text_input("TAVILY_API_KEY (leave blank to use .env or system default)", value="", type="password")
 
     # 5) Run Pipeline
     if st.button("Initialize/Run Pipeline"):
@@ -206,12 +217,10 @@ def main():
             st.warning("Please upload a PDF first!")
             return
 
-        # Generate fresh thread_id
         new_thread_id = str(uuid.uuid4())
         st.session_state["thread_id"] = new_thread_id
         st.success(f"New study initiated, Thread ID: {new_thread_id}")
 
-        # Build custom Configuration object from user inputs
         user_config = Configuration(
             number_of_queries=n_queries,
             max_results_query=max_results,
@@ -220,124 +229,84 @@ def main():
             language_for_report=lang_report,
             local_orange_book_zip_path=local_ob_path,
         )
-        # If user typed a TAVILY key, override
         if new_tavily_key.strip():
             user_config.TAVILY_API_KEY = new_tavily_key.strip()
 
-        # Prepare the pipeline state
         initial_state = initialize_graph_state(
             pdf_path=pdf_path,
             apis_text_information=apis_text_information,
             is_rld_combination=is_rld_combination_sel,
             is_supplement=is_supplement_sel,
         )
-        # Store final report path for later
         st.session_state["report_docx"] = ""
 
-        # 6) Execute pipeline until interrupt or finish
         with st.spinner("Running pipeline..."):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-            events, interrupted, last_event = loop.run_until_complete(
-                run_until_interrupt_or_end(
-                    initial_state,
-                    thread_info={"configurable": {"thread_id": new_thread_id, **user_config.__dict__}},
-                    verbose=False
-                )
+            thread_info = {"configurable": {"thread_id": new_thread_id, **user_config.__dict__}}
+            
+            flat_potential_rlds, current_RLDs = loop.run_until_complete(
+                run_before_interruption(initial_state, thread_info)                
             )
 
-        # If interrupted
-        if interrupted:
-            st.warning("**Pipeline interrupted** at the Formulator Feedback node!")
-            st.session_state["last_interrupt_event"] = last_event
-            st.session_state["pipeline_state"] = initial_state
-        else:
-            st.success("Pipeline finished without interruption!")
-            final_state = drug_development_researcher_graph.get_state(
-                {"configurable": {"thread_id": new_thread_id}}
-            ).values
-            st.session_state["report_docx"] = final_state.get("report_docx_dir_string", "")
-            st.write("**Final Pipeline State**:", final_state)
-
-    # 7) If there's an ongoing interrupt
-    if "last_interrupt_event" in st.session_state and st.session_state["last_interrupt_event"] is not None:
+        st.warning("**Pipeline interrupted** at the Formulator Feedback node!")
         st.subheader("**Formulator Feedback Required**")
-        interrupt_payload = st.session_state["last_interrupt_event"]["__interrupt__"]
 
-        # Potential RLDs
-        potential_rld_nested = interrupt_payload[0].value.get("potential_RLDs", [])
-        flat_potential_rlds = []
-        for sublist in potential_rld_nested:
-            if isinstance(sublist, list):
-                flat_potential_rlds.extend(sublist)
-            else:
-                flat_potential_rlds.append(sublist)
-
-        st.write("### Potential RLDs discovered:")
+        st.write("### Potential Reference Products for DailyMed Research:")
         if flat_potential_rlds:
             for i, rld in enumerate(flat_potential_rlds):
-                st.markdown(
-                    f"""
+                st.markdown(f"""
                     **[{i}]**  
                     - Title: {rld.title}  
                     - API: {rld.api_name}  
                     - Brand: {rld.brand_name}  
                     - Manufacturer: {rld.manufacturer}  
-                    - SetID: {rld.setid}  
-                    - Image URL: {rld.image_url or 'N/A'}
-                    """
-                )
+                """)
         else:
             st.info("No potential RLDs found.")
 
-        # Current RLDs
-        current_RLDs = interrupt_payload[0].value.get("RLDs", [])
-        st.write("**Current RLDs** in the pipeline:")
+        st.write("### **Current RLDs** discovered in the Orange Book Database:")
         for i, rld in enumerate(current_RLDs):
-            st.markdown(
-                f"""
+            st.markdown(f"""
                 **RLD {i}**:  
                 - API: {rld.api_name}  
                 - Brand: {rld.brand_name}  
                 - Dosage Form: {rld.rld_dosage_form}  
                 - Manufacturer: {rld.manufacturer}
-                """
-            )
+                """)
 
         decision = st.selectbox(
-            "Choose a feedback decision to continue",
-            ["retry_api", "retry_dosage", "enrich_as_is", "enrich_selected"],
+            """### Choose a feedback decision to continue\n\n 1 . **No available RLD in DailyMed (Retry with API name)**\n\n 2 . **No available RLD in DailyMed (Retry with dosage forms)**\n\n 3 . **Proceed to DailyMed Research AS IS**\n\n 4 . **Proceed to DailyMed Research with SELECTED APIs**\n\n""",
+            ["Retry with API name", "Retry with dosage forms", "Proceed to DailyMed Research AS IS", "Proceed to DailyMed Research with SELECTED APIs"],
         )
 
-        if decision == "retry_dosage":
+        # Collect additional inputs based on the decision
+        if decision == "Retry with dosage forms":
             st.info("Change dosage forms for certain RLDs by matching their API names.")
             api_list_input = st.text_input("API names to update (comma-separated):")
             dosage_list_input = st.text_input("New dosage forms (comma-separated, same length as APIs).")
-
-        if decision == "retry_api":
+        if decision == "Retry with API name":
             st.info("Reset brand_name to API name for specified RLDs.")
             retry_api_input = st.text_input("API names to reset brand name (comma-separated):")
-
-        if decision == "enrich_selected":
+        if decision == "Proceed to DailyMed Research with SELECTED APIs":
             st.info("Enter indexes of potential RLDs to keep for enrichment.")
             selected_indexes_str = st.text_input("Indexes (e.g., '0,2').")
-
+            
         if st.button("Resume Pipeline"):
+            # Build the human_response based on decision
             human_response = {"feedback_decision": decision}
 
-            if decision in ["retry_api", "retry_dosage"]:
-                # The pipeline expects "retry_daily_med"
-                human_response["feedback_decision"] = "retry_daily_med"
-
-            if decision == "retry_api":
-                # parse input
+            if decision == "Retry with API name":
                 to_reset = [x.strip() for x in retry_api_input.split(",") if x.strip()]
                 for rld_obj in current_RLDs:
                     if rld_obj.api_name in to_reset:
                         rld_obj.brand_name = rld_obj.api_name
-                human_response["RLDs"] = current_RLDs
-
-            elif decision == "retry_dosage":
+                human_response = {
+                    "feedback_decision": decision,
+                    "RLDs": current_RLDs
+                }
+                
+            elif decision == "Retry with dosage forms":
                 apis_arr = [x.strip() for x in api_list_input.split(",") if x.strip()]
                 dosage_arr = [x.strip() for x in dosage_list_input.split(",") if x.strip()]
                 mapping = {}
@@ -346,48 +315,141 @@ def main():
                 for rld_obj in current_RLDs:
                     if rld_obj.api_name in mapping:
                         rld_obj.rld_dosage_form = mapping[rld_obj.api_name]
-                human_response["RLDs"] = current_RLDs
+                human_response = {
+                    "feedback_decision": decision,
+                    "RLDs": current_RLDs
+                }
+                
+            elif decision == "Proceed to DailyMed Research AS IS":
+                human_response = {
+                    "feedback_decision": decision,
+                    "selected_RLDs": flat_potential_rlds
+                }
 
-            elif decision == "enrich_as_is":
-                human_response["selected_RLDs"] = flat_potential_rlds
-
-            elif decision == "enrich_selected":
+            elif decision == "Proceed to DailyMed Research with SELECTED APIs":
                 selected_indexes = []
                 try:
                     selected_indexes = [int(x.strip()) for x in selected_indexes_str.split(",") if x.strip().isdigit()]
                 except:
                     pass
-                chosen_rlds = []
-                for idx in selected_indexes:
-                    if 0 <= idx < len(flat_potential_rlds):
-                        chosen_rlds.append(flat_potential_rlds[idx])
-                human_response["selected_RLDs"] = chosen_rlds
+                chosen_rlds = [flat_potential_rlds[i] for i in selected_indexes if i < len(flat_potential_rlds)]
+                human_response = {
+                    "feedback_decision": decision,
+                    "selected_RLDs": chosen_rlds
+                }
 
-            st.session_state["last_interrupt_event"] = None  # Clear interrupt
-
-            with st.spinner("Resuming pipeline..."):
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                # Re-run with Command(resume=human_response)
-                events, interrupted, last_event = loop.run_until_complete(
-                    run_until_interrupt_or_end(
-                        Command(resume=human_response),
-                        thread_info={"configurable": {"thread_id": st.session_state["thread_id"]}},
-                        verbose=False
+            # --- Resume Loop ---
+            thread_info = {"configurable": {"thread_id": st.session_state["thread_id"]}}
+                
+            while human_response["feedback_decision"] not in ["Proceed to DailyMed Research AS IS", "Proceed to DailyMed Research with SELECTED APIsd"]:
+                with st.spinner("Running pipeline..."):                
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    flat_potential_rlds, current_RLDs = loop.run_until_complete(
+                        run_after_interruption(Command(resume=human_response), thread_info, verbose=False)
                     )
-                )
-            if interrupted:
-                st.warning("Interrupted again. Please respond again below.")
-                st.session_state["last_interrupt_event"] = last_event
-            else:
-                st.success("Pipeline resumed and finished successfully!")
-                final_state = drug_development_researcher_graph.get_state(
-                    {"configurable": {"thread_id": st.session_state['thread_id']}}
-                ).values
-                st.session_state["report_docx"] = final_state.get("report_docx_dir_string", "")
-                st.write("**Final Pipeline State**:", final_state)
 
-    # 8) If final report is available, let user download
+                st.write("=== Updated Available Reference Products ===")
+                for i, rld in enumerate(flat_potential_rlds):
+                    st.markdown(f"""
+                    **[{i}]**  
+                    - Title: {rld.title}  
+                    - API: {rld.api_name}  
+                    - Brand: {rld.brand_name}  
+                    - Manufacturer: {rld.manufacturer}
+                    """)
+                
+                st.write("### **Current RLDs** discovered in the Orange Book Database:")
+                for i, rld in enumerate(current_RLDs):
+                    st.markdown(f"""
+                        **RLD {i}**:  
+                        - API: {rld.api_name}  
+                        - Brand: {rld.brand_name}  
+                        - Dosage Form: {rld.rld_dosage_form}  
+                        - Manufacturer: {rld.manufacturer}
+                        """)
+
+                new_decision = st.selectbox(
+                    """### Choose a feedback decision to continue\n\n
+                    1 . **No available RLD in DailyMed (Retry with API name)**\n\n  
+                    2 . **No available RLD in DailyMed (Retry with dosage forms)**\n\n
+                    3 . **Proceed to DailyMed Research AS IS**\n\n
+                    4 . **Proceed to DailyMed Research with SELECTED APIs**\n\n""",
+                    ["Retry with API name", "Retry with dosage forms", "Proceed to DailyMed Research AS IS", "Proceed to DailyMed Research with SELECTED APIs"],
+                )
+                
+                # Collect additional inputs based on the decision
+                if new_decision == "Retry with dosage forms":
+                    st.info("Change dosage forms for certain RLDs by matching their API names.")
+                    api_list_input = st.text_input("API names to update (comma-separated):")
+                    dosage_list_input = st.text_input("New dosage forms (comma-separated, same length as APIs).")
+                if new_decision == "Retry with API name":
+                    st.info("Reset brand_name to API name for specified RLDs.")
+                    retry_api_input = st.text_input("API names to reset brand name (comma-separated):")
+                if new_decision == "Proceed to DailyMed Research with SELECTED APIs":
+                    st.info("Enter indexes of potential RLDs to keep for enrichment.")
+                    selected_indexes_str = st.text_input("Indexes (e.g., '0,2').")
+                
+                if st.button("Resume Pipeline"):
+                    # Build the human_response based on decision
+                    human_response = {"feedback_decision": new_decision}
+
+                    if new_decision == "Retry with API name":
+                        to_reset = [x.strip() for x in retry_api_input.split(",") if x.strip()]
+                        for rld_obj in current_RLDs:
+                            if rld_obj.api_name in to_reset:
+                                rld_obj.brand_name = rld_obj.api_name
+                        human_response = {
+                            "feedback_decision": new_decision,
+                            "RLDs": current_RLDs
+                        }
+                    
+                    elif new_decision == "Retry with dosage forms":
+                        apis_arr = [x.strip() for x in api_list_input.split(",") if x.strip()]
+                        dosage_arr = [x.strip() for x in dosage_list_input.split(",") if x.strip()]
+                        mapping = {}
+                        for i in range(min(len(apis_arr), len(dosage_arr))):
+                            mapping[apis_arr[i]] = dosage_arr[i]
+                        for rld_obj in current_RLDs:
+                            if rld_obj.api_name in mapping:
+                                rld_obj.rld_dosage_form = mapping[rld_obj.api_name]
+                        human_response = {
+                            "feedback_decision": new_decision,
+                            "RLDs": current_RLDs
+                        }
+                    
+                    elif new_decision == "Proceed to DailyMed Research AS IS":
+                        human_response = {
+                            "feedback_decision": new_decision,
+                            "selected_RLDs": flat_potential_rlds
+                        }
+
+                    elif new_decision == "Proceed to DailyMed Research with SELECTED APIs":
+                        selected_indexes = []
+                        try:
+                            selected_indexes = [int(x.strip()) for x in selected_indexes_str.split(",") if x.strip().isdigit()]
+                        except:
+                            pass
+                        chosen_rlds = [flat_potential_rlds[i] for i in selected_indexes if i < len(flat_potential_rlds)]
+                        human_response = {
+                            "feedback_decision": new_decision,
+                            "selected_RLDs": chosen_rlds
+                        }
+
+            # Resume execution using Command(resume=human_response)
+            resumed_events = []
+            for event in drug_development_researcher_graph.stream(Command(resume=human_response), thread_info, stream_mode="updates"):
+                resumed_events.append(event)
+
+        # --- End Resume Loop --- #
+        st.success("Pipeline resumed and finished successfully!")
+        final_state = drug_development_researcher_graph.get_state(thread_info).values
+        st.session_state["report_docx"] = final_state.get("report_docx_dir_string", "")
+        st.write("**Final Pipeline State**:", final_state)
+        final_state = drug_development_researcher_graph.get_state(thread_info).values
+        st.session_state["report_docx"] = final_state.get("report_docx_dir_string", "")
+        
+    # 7) If final report is available, let user download
     if "report_docx" in st.session_state and st.session_state["report_docx"]:
         st.subheader("Download Final Report")
         doc_path = st.session_state["report_docx"]
@@ -397,7 +459,7 @@ def main():
         else:
             st.error("Report file not found on disk. Possibly the pipeline didn't generate it.")
 
-    # 9) Add a button to reset the entire app
+    # 8) Add a button to reset the entire app
     st.markdown("---")
     if st.button("Reset App"):
         reset_app()
