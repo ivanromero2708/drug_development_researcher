@@ -1125,7 +1125,7 @@ Molecular Formula: C4H6N4O3S2
 
 Acetazolamide is available as oral tablets containing 125 mg and 250 mg of acetazolamide, respectively, and the following inactive ingredients: corn starch, gelatin, glycerin, lactose monohydrate, magnesium stearate, purified water, sodium starch glycolate and talc.
 </drug_label_doc_info>
-    """
+    """,
 }
 
 AI_MESSAGE_EXAMPLE2_RLD = {
@@ -1164,31 +1164,43 @@ Store at 20° to 25°C (68° to 77°F).
     """,
     "rld_special_characteristics": """
 Acetazolamide Tablets, USP from Pharmaceutical Industries Ltd. contain gelatin and glycerin. Gelatin has been used as a binder and a coating agent while Glycerin has been used as a solvent and binding enhancer in tablet manufacturing. The function of both excipients in the formulation must be studied.
-    """
+    """,
 }
+
 
 @dataclass(kw_only=True)
 class Configuration:
     """The configurable fields for the chatbot."""
+
     gpt4o: str = "gpt-4o"
     gpt4omini: str = "gpt-4o-mini"
     o3mini: str = "o3-mini"
     claude_35_sonnet: str = "claude-3-5-sonnet-latest"
     TAVILY_API_KEY: str = os.getenv("TAVILY_API_KEY")
-    local_orange_book_zip_path: str = r"C:\Users\Ivan\OneDrive - Grupo Procaps\Portafolio NTF\16 - I&D 4.0\2. Investigación de Literatura - Degradación de APIs\1.2 MVP\drug development researcher\databases\orange_book_database.zip"
+    local_orange_book_zip_path: str = "./databases/orange_book_database.zip"
     number_of_queries: int = 9
     max_results_query: int = 5
     max_tokens_per_source: int = 1000
     language_for_extraction: str = "english"
     language_for_report: str = "english"
     # Use default_factory for mutable dict fields
-    HUMAN_MESSAGE_EXAMPLE1_RLD: Dict = field(default_factory=lambda: HUMAN_MESSAGE_EXAMPLE1_RLD)
-    AI_MESSAGE_EXAMPLE1_RLD: Dict = field(default_factory=lambda: AI_MESSAGE_EXAMPLE1_RLD)
-    HUMAN_MESSAGE_EXAMPLE2_RLD: Dict = field(default_factory=lambda: HUMAN_MESSAGE_EXAMPLE2_RLD)
-    AI_MESSAGE_EXAMPLE2_RLD: Dict = field(default_factory=lambda: AI_MESSAGE_EXAMPLE2_RLD)
-    MAPPING_DRUG_LABEL_SECTION: Dict = field(default_factory=lambda: MAPPING_DRUG_LABEL_SECTION)
+    HUMAN_MESSAGE_EXAMPLE1_RLD: Dict = field(
+        default_factory=lambda: HUMAN_MESSAGE_EXAMPLE1_RLD
+    )
+    AI_MESSAGE_EXAMPLE1_RLD: Dict = field(
+        default_factory=lambda: AI_MESSAGE_EXAMPLE1_RLD
+    )
+    HUMAN_MESSAGE_EXAMPLE2_RLD: Dict = field(
+        default_factory=lambda: HUMAN_MESSAGE_EXAMPLE2_RLD
+    )
+    AI_MESSAGE_EXAMPLE2_RLD: Dict = field(
+        default_factory=lambda: AI_MESSAGE_EXAMPLE2_RLD
+    )
+    MAPPING_DRUG_LABEL_SECTION: Dict = field(
+        default_factory=lambda: MAPPING_DRUG_LABEL_SECTION
+    )
     SECTIONCODE_MAP: Dict = field(default_factory=lambda: SECTIONCODE_MAP)
-    
+
     @classmethod
     def from_runnable_config(cls, config):
         """Convierte un RunnableConfig en una instancia de Configuration"""
