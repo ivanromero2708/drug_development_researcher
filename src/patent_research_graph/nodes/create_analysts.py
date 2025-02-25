@@ -16,7 +16,7 @@ class CreateAnalysts:
         
         # Get configuration and initialize the LLM
         configurable = Configuration.from_runnable_config(config)
-        llm = ChatOpenAI(model=configurable.o3mini, reasoning_effort = "medium") 
+        llm = ChatOpenAI(model=configurable.gpt4o, temperature=0) 
         
         structured_llm = llm.with_structured_output(Perspectives)        
 

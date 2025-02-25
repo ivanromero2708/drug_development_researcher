@@ -40,7 +40,7 @@ class GenerateRLDContent:
 
         # 2) Get configuration + LLM
         configurable = Configuration.from_runnable_config(config)
-        llm = ChatOpenAI(model=configurable.o3mini, reasoning_effort="medium")
+        llm = ChatOpenAI(model=configurable.gpt4omini, temperature=0)
         
         # 3) Retrieve examples + mapping
         HUMAN_MESSAGE_EXAMPLE1_RLD = configurable.HUMAN_MESSAGE_EXAMPLE1_RLD

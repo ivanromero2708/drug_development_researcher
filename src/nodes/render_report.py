@@ -15,12 +15,8 @@ class RenderReport:
     def render_report(
         self, state: DrugDevelopmentResearchGraphState, config: RunnableConfig
     ):
-        # Get the absolute path to the current file
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-
         # Construct the full path to your template
         template_path = os.path.join(
-            current_dir,
             "templates",
             "Bibliographic_Revision_Template.docx"
         )

@@ -6,6 +6,7 @@ from langgraph.graph import MessagesState
 from src.state import API, PatentResearchReport
 
 class Analyst(BaseModel):
+    """The Analyst profile to create for a comprehensive list of analysts descriptions, roles, and affiliations"""
     affiliation: str = Field(
        description="Primary affiliation of the analyst.",
     )
@@ -23,6 +24,7 @@ class Analyst(BaseModel):
         return f"Name: {self.name}\nRole: {self.role}\nAffiliation: {self.affiliation}\nDescription: {self.description}\n"
 
 class Perspectives(BaseModel):
+    """The list of analyst profiles"""
     analysts: List[Analyst] = Field(
         description="Comprehensive list of analysts with their roles and affiliations.",
     )

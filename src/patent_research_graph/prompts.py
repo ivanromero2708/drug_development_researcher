@@ -36,10 +36,18 @@ Deliverables: A thorough report section detailing impurity sources, stability pa
 Steps
 1. Incorporate the provided context.
 2. Replace the placeholders with actual data or instructions relevant to the pharmaceutical patent research scope.
-3. Ensure each analyst is clearly defined, with specific goals, expertise, and expected deliverables aligned to patent-oriented outcomes.
+3. Ensure each analyst is clearly defined, with specific goals, expertise, and expected deliverables aligned to patent-oriented outcomes. It should have the next structure:
+    affiliation: "Primary affiliation of the analyst."
+    name: "Name of the analyst."
+    role: "Role of the analyst in the context of the topic."
+    description: "Description of the analyst focus, concerns, and motives."
 
 Output Format
-Produce the instructions for creating these four analyst personas in plain text or simple structured text. Maintain clarity and detail to guide further AI-driven analysis.
+Produce the instructions for creating these four analyst personas in plain text or simple structured text. Maintain clarity and detail to guide further AI-driven analysis. Create a json object with each of these fields for the analysts
+    affiliation: "Primary affiliation of the analyst."
+    name: "Name of the analyst."
+    role: "Role of the analyst in the context of the topic."
+    description: "Description of the analyst focus, concerns, and motives."
 
 Notes
 Keep any references to user-supplied context in curly braces.

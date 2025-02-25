@@ -72,6 +72,7 @@ class WebResearch:
                 query=query_with_date,
                 max_results=max_results_query,
                 include_raw_content=True,
+                include_domains = ["https://patents.google.com/", "https://ppubs.uspto.gov/pubwebapp/static/pages/ppubsbasic.html", "https://patentscope.wipo.int/search/es/search.jsf", "https://pubmed.ncbi.nlm.nih.gov/", "https://arxiv.org/", "https://core.ac.uk/", "https://www.sciencedirect.com/", "https://www.researchgate.net/", "https://www.semanticscholar.org/", "https://pubchem.ncbi.nlm.nih.gov/"]
             )
             # Ensure response contains 'results'
             web_research_results = response.get("results", [])
