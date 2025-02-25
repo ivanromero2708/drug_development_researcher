@@ -11,6 +11,7 @@ from streamlit import components
 from src.graph_final import drug_development_researcher_graph
 from src.configuration import Configuration
 from src.state import DrugDevelopmentResearchGraphState, PotentialRLD, RLD
+from src.utils import images
 
 
 def reset_app():
@@ -276,31 +277,50 @@ For example:
         st.subheader("**Formulator Feedback Required**")
 
         st.write("### Potential Reference Products for DailyMed Research:")
+
+        # Placeholder para las cards
+
         if st.session_state["flat_potential_rlds"]:
-            for i, rld in enumerate(st.session_state["flat_potential_rlds"]):
-                st.markdown(
-                    f"""
-                **[{i}]**  
-                - Title: {rld.title}  
-                - API: {rld.api_name}  
-                - Brand: {rld.brand_name}  
-                - Manufacturer: {rld.manufacturer}  
-                """
-                )
-        else:
-            st.info("No potential RLDs found.")
+            cards_per_row = 3
+            flat_rld = st.session_state["flat_potential_rlds"]
+            for idx in range(0, len(flat_rld), cards_per_row):
+                cols = st.columns(cards_per_row)
+                for i, rld in enumerate(flat_rld[idx : idx + cards_per_row]):
+                    with cols[i]:
+                        with st.container():
+                            image = images(rld.setid)
+                            st.image(image, use_container_width=True)
+                            st.markdown(
+                                f"""
+                                - Title: {rld.title}  
+                                - API: {rld.api_name}  
+                                - Brand: {rld.brand_name}  
+                                - Manufacturer: {rld.manufacturer}  
+                                - Set Id: {rld.setid}
+"""
+                            )
+                            select = st.checkbox("Select", key=f"card_flat_rld{idx+i}")
+
+            else:
+                st.info("No potential RLDs found.")
 
         st.write("### **Current RLDs** discovered in the Orange Book Database:")
-        for i, rld in enumerate(st.session_state["current_RLDs"]):
-            st.markdown(
-                f"""
-                **RLD {i}**:  
-                - API: {rld.api_name}  
-                - Brand: {rld.brand_name}  
-                - Dosage Form: {rld.rld_dosage_form}  
-                - Manufacturer: {rld.manufacturer}
-                """
-            )
+        cards_per_row = 3
+        rld = st.session_state["current_RLDs"]
+        for idx in range(0, len(rld), cards_per_row):
+            cols = st.columns(cards_per_row)
+            for i, rld in enumerate(rld[idx : idx + cards_per_row]):
+                with cols[i]:
+                    with st.container():
+                        st.markdown(
+                            f"""
+                            **RLD {i}**:  
+                            - API: {rld.api_name}  
+                            - Brand: {rld.brand_name}  
+                            - Dosage Form: {rld.rld_dosage_form}  
+                            - Manufacturer: {rld.manufacturer}
+                            """
+                        )
 
         # Feedback decision select box and extra inputs as needed.
         decision = st.selectbox(
@@ -341,7 +361,7 @@ For example:
                 "Indexes (e.g., '0,2'):", key="selected_indexes_str"
             )
 
-        if st.button("Resume Pipeline", key="resume_pipeline"):
+        if st.button("Continue", key="resume_pipeline"):
             human_response = {"feedback_decision": decision}
             if decision == "Retry with API name":
                 to_reset = [
