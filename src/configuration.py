@@ -1180,6 +1180,7 @@ class Configuration:
     local_orange_book_zip_path: str = "./databases/orange_book_database.zip"
     number_of_queries: int = 9
     max_results_query: int = 5
+    max_num_turns_interview_patent: int = 3
     max_tokens_per_source: int = 1000
     language_for_extraction: str = "english"
     language_for_report: str = "english"

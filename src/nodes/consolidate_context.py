@@ -19,10 +19,15 @@ class ConsolidateContext:
         rld_research_list = [rld.model_dump() for rld in state["product_research_report"]]
         rld_research_json = json.dumps(rld_research_list)
         
+        # Convertir cada objeto RLDResearchData a dict y luego serializar la lista a JSON
+        patent_research_list = [patent.model_dump() for patent in state["patent_research_report"]]
+        patent_research_json = json.dumps(patent_research_list)
+        
         combined_context = {
             "product_information": json.loads(product_information_json),
             "api_literature_data": json.loads(api_literature_json),
-            "rld_research_data": json.loads(rld_research_json)
+            "rld_research_data": json.loads(rld_research_json),
+            "patent_research_data": json.loads(patent_research_json),
         }
         context_for_tpl = json.dumps(combined_context)
         

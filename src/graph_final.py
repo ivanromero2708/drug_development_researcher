@@ -4,17 +4,19 @@ from src.state import DrugDevelopmentResearchGraphState
 
 from src.literature_research_agent.graph import literature_researcher_graph_builder
 from src.product_research_graph.graph import product_research_graph_builder
+from src.patent_research_graph.graph import patent_research_graph_builder
 
-from .nodes import(
+from src.nodes import(
     ExtractAPIsInformation,
     ExtractInputInformation,
     ConsolidateContext,
     RenderReport,
 )
 
-from .edges import(
+from src.edges import(
     InitializeLiteratureResearch,
     IsRLDCombination,
+    ParallelizePatentResearch,
 )
 
 extract_apis_information = ExtractAPIsInformation()
@@ -22,6 +24,7 @@ extract_input_information = ExtractInputInformation()
 initialize_literature_research_agent = InitializeLiteratureResearch()
 consolidate_context = ConsolidateContext()
 render_report = RenderReport()
+parallelize_patent_research = ParallelizePatentResearch()
 
 is_rld_combination_edge = IsRLDCombination()
 
@@ -40,7 +43,10 @@ drug_development_researcher_graph_builder.add_node("literature_research", litera
 # 3) Product research subgraph
 drug_development_researcher_graph_builder.add_node("product_research", product_research_graph_builder.compile(checkpointer=drug_development_researcher_memory))
 
-# 4) Consolidation & final
+#4) Patent research subgraph
+drug_development_researcher_graph_builder.add_node("patent_research", patent_research_graph_builder.compile(checkpointer=drug_development_researcher_memory))
+
+# 5) Consolidation & final
 drug_development_researcher_graph_builder.add_node("consolidate_context", consolidate_context.run)
 drug_development_researcher_graph_builder.add_node("render_report", render_report.run)
 
@@ -64,9 +70,16 @@ drug_development_researcher_graph_builder.add_conditional_edges(
 # Product research (Subgraph execution)
 drug_development_researcher_graph_builder.add_edge("extract_apis_information", "product_research")
 
+# Patent Research Parallelization
+drug_development_researcher_graph_builder.add_conditional_edges(
+    "product_research",
+    parallelize_patent_research.run,
+    ["patent_research"]
+)
+
 # Merge paths -> consolidate
 drug_development_researcher_graph_builder.add_edge(
-    ["literature_research", "product_research"],
+    ["literature_research", "patent_research"],
     "consolidate_context"
 )
 

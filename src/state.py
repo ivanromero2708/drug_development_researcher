@@ -232,7 +232,16 @@ class ProductReportSection(BaseModel):
 
 
 
-
+class PatentResearchReport(BaseModel):
+    api_name: str = Field(
+        ...,
+        description= "The name of the API."
+    )
+    patent_research_report_api: str = Field(
+        ...,
+        description= "The patent research report for the API."
+    )
+    
 
 class APILiteratureData(BaseModel):
     api_name: str = Field(
@@ -569,7 +578,7 @@ class DrugDevelopmentResearchGraphState(TypedDict):
     product_research_report: Annotated[List[ProductReportSection], operator.add]
     product_research_data: Annotated[List[ProductResearchData], operator.add]
 
-    patent_background_restrictions:str
+    patent_research_report: Annotated[List[PatentResearchReport], operator.add]
 #    api_monographs: List[APIMonograph]
 #    drug_product_monographs: List[DrugProductMonograph]
     rld_packaging_descriptions: str
