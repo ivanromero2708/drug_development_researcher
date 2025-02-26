@@ -277,9 +277,6 @@ For example:
         st.subheader("**Formulator Feedback Required**")
 
         st.write("### Potential Reference Products for DailyMed Research:")
-
-        # Placeholder para las cards
-
         if st.session_state["flat_potential_rlds"]:
             cards_per_row = 3
             flat_rld = st.session_state["flat_potential_rlds"]
@@ -292,17 +289,16 @@ For example:
                             st.image(image, use_container_width=True)
                             st.markdown(
                                 f"""
-                                - Title: {rld.title}  
-                                - API: {rld.api_name}  
-                                - Brand: {rld.brand_name}  
-                                - Manufacturer: {rld.manufacturer}  
-                                - Set Id: {rld.setid}
-"""
+                                    - Title: {rld.title}  
+                                    - API: {rld.api_name}  
+                                    - Brand: {rld.brand_name}  
+                                    - Manufacturer: {rld.manufacturer}  
+                                    - Set Id: {rld.setid}
+                                    """
                             )
                             select = st.checkbox("Select", key=f"card_flat_rld{idx+i}")
-
-            else:
-                st.info("No potential RLDs found.")
+        else:
+            st.info("No potential RLDs found.")
 
         st.write("### **Current RLDs** discovered in the Orange Book Database:")
         cards_per_row = 3
@@ -356,10 +352,12 @@ For example:
                 key="retry_api_input",
             )
         if decision == "Proceed to DailyMed Research with SELECTED APIs":
-            st.info("Enter indexes of potential RLDs to keep for enrichment.")
-            selected_indexes_str = st.text_input(
-                "Indexes (e.g., '0,2'):", key="selected_indexes_str"
+            st.info(
+                "Select the desired Potential RLDs using the checkboxes below the cards. "
             )
+            # selected_indexes_str = st.text_input(
+            #     "Indexes (e.g., '0,2'):", key="selected_indexes_str"
+            # )
 
         if st.button("Continue", key="resume_pipeline"):
             human_response = {"feedback_decision": decision}
@@ -401,23 +399,12 @@ For example:
                 ]
 
             elif decision == "Proceed to DailyMed Research with SELECTED APIs":
-                selected_indexes = []
-                try:
-                    selected_indexes = [
-                        int(x.strip())
-                        for x in st.session_state.get("selected_indexes_str", "").split(
-                            ","
-                        )
-                        if x.strip().isdigit()
-                    ]
-                except Exception:
-                    selected_indexes = []
-                chosen_rlds = [
-                    st.session_state["flat_potential_rlds"][i]
-                    for i in selected_indexes
-                    if i < len(st.session_state["flat_potential_rlds"])
-                ]
-                human_response["selected_RLDs"] = chosen_rlds
+                selected_rlds = []
+                flat_rlds = st.session_state["flat_potential_rlds"]
+                for idx in range(len(flat_rlds)):
+                    if st.session_state.get(f"card_flat_rld{idx}", False):
+                        selected_rlds.append(flat_rlds[idx])
+                human_response["selected_RLDs"] = selected_rlds
 
             st.session_state["human_response"] = human_response
 
